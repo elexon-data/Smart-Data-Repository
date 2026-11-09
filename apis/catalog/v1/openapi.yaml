@@ -1,0 +1,933 @@
+openapi: 3.0.0
+info:
+  title: SDR Catalog API
+  version: 1.0.0
+  description: Latest approved API contract. Inclusion does not confirm production availability. Check the developer
+    portal for release and availability information.
+  license:
+    name: Proprietary
+    url: https://www.elexon.co.uk/terms
+servers:
+  - url: https://api.elexon.co.uk
+    description: Production
+    variables: {}
+paths:
+  /api/catalog/v{version}/datasets:
+    get:
+      operationId: CatalogRoutes_listDatasets
+      summary: Search datasets with facets and pagination
+      description: Returns a paginated dataset search with catalog facets.
+      parameters:
+        - name: version
+          in: path
+          required: true
+          description: API version.
+          schema:
+            $ref: "#/components/schemas/ApiMajorVersion"
+        - name: q
+          in: query
+          required: false
+          description: Free-text search term.
+          schema:
+            type: string
+          explode: false
+        - name: keywords
+          in: query
+          required: false
+          description: Filter by keyword values. Repeatable.
+          schema:
+            type: array
+            items:
+              type: string
+          explode: false
+        - name: rights
+          in: query
+          required: false
+          description: Filter by access rights tiers. Repeatable.
+          schema:
+            type: array
+            items:
+              type: string
+          explode: false
+        - name: accrualPeriodicity
+          in: query
+          required: false
+          description: Filter by accrual periodicity values. Repeatable.
+          schema:
+            type: array
+            items:
+              type: string
+          explode: false
+        - name: offset
+          in: query
+          required: false
+          description: Zero-based offset into the matching results.
+          schema:
+            type: integer
+            format: int32
+            default: 0
+          explode: false
+        - name: limit
+          in: query
+          required: false
+          description: Maximum number of results to return.
+          schema:
+            type: integer
+            format: int32
+            minimum: 1
+            maximum: 1000
+            default: 100
+          explode: false
+        - name: sortBy
+          in: query
+          required: false
+          description: Sort field.
+          schema:
+            $ref: "#/components/schemas/CatalogSortBy"
+          explode: false
+        - name: sortOrder
+          in: query
+          required: false
+          description: Sort direction for title, modified or datasetLevel sorting.
+          schema:
+            $ref: "#/components/schemas/SortOrder"
+          explode: false
+        - name: status
+          in: query
+          required: false
+          description: Dataset publication status. Defaults to published.
+          schema:
+            allOf:
+              - $ref: "#/components/schemas/CatalogDatasetStatus"
+            default: published
+          explode: false
+      responses:
+        "200":
+          description: The request has succeeded.
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - items
+                  - pagination
+                properties:
+                  items:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/DatasetSummary"
+                    description: The items for the current page.
+                  pagination:
+                    allOf:
+                      - $ref: "#/components/schemas/PaginationMetadata"
+                    description: Pagination metadata for this page.
+                  facets:
+                    type: object
+                    additionalProperties:
+                      type: array
+                      items:
+                        $ref: "#/components/schemas/FacetBucket"
+                    description: Facet counts per field, when applicable. Empty object if no facets requested.
+                  query:
+                    allOf:
+                      - $ref: "#/components/schemas/QueryEcho"
+                    description: Query parameters echoed back for transparency.
+                  meta:
+                    allOf:
+                      - $ref: "#/components/schemas/ResponseMetadata"
+                    description: Request metadata providing context about the response.
+                  links:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/Link"
+                    description: HATEOAS links for navigation and related resources.
+                description: Paginated search response containing items, pagination metadata, facet counts, and query parameters.
+        "400":
+          description: The server could not understand the request due to invalid syntax.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ProblemDetails"
+        "503":
+          description: Service unavailable.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ProblemDetails"
+      tags:
+        - Catalog
+      security:
+        - {}
+  /api/catalog/v{version}/datasets/{id}:
+    get:
+      operationId: CatalogRoutes_getDataset
+      summary: Get dataset by ID
+      description: Returns a single dataset by its identifier.
+      parameters:
+        - name: version
+          in: path
+          required: true
+          description: API version.
+          schema:
+            $ref: "#/components/schemas/ApiMajorVersion"
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: status
+          in: query
+          required: false
+          description: Dataset publication status. Defaults to published.
+          schema:
+            allOf:
+              - $ref: "#/components/schemas/CatalogDatasetStatus"
+            default: published
+          explode: false
+      responses:
+        "200":
+          description: The request has succeeded.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DatasetDetail"
+        "400":
+          description: The server could not understand the request due to invalid syntax.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ProblemDetails"
+        "404":
+          description: The server cannot find the requested resource.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ProblemDetails"
+      tags:
+        - Catalog
+      security:
+        - {}
+  /api/catalog/v{version}/datasets/{id}/lineage:
+    get:
+      operationId: CatalogRoutes_getDatasetLineage
+      summary: Get dataset lineage graph
+      description: Returns the lineage graph for a dataset.
+      parameters:
+        - name: version
+          in: path
+          required: true
+          schema:
+            $ref: "#/components/schemas/ApiMajorVersion"
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: maxDepth
+          in: query
+          required: false
+          description: Maximum BFS depth; values above the server's configured ceiling are capped.
+          schema:
+            type: integer
+            format: int32
+            minimum: 1
+          explode: false
+        - name: status
+          in: query
+          required: false
+          description: Dataset publication status. Defaults to published.
+          schema:
+            allOf:
+              - $ref: "#/components/schemas/CatalogDatasetStatus"
+            default: published
+          explode: false
+      responses:
+        "200":
+          description: The request has succeeded.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/LineageResponse"
+        "400":
+          description: The server could not understand the request due to invalid syntax.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ProblemDetails"
+        "404":
+          description: The server cannot find the requested resource.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ProblemDetails"
+      tags:
+        - Catalog
+      security:
+        - {}
+  /api/catalog/v{version}/datasets/{id}/related:
+    get:
+      operationId: CatalogRoutes_getDatasetRelated
+      summary: Get related datasets by ID
+      description: Returns related datasets by the identifier of the primary dataset.
+      parameters:
+        - name: version
+          in: path
+          required: true
+          description: API version.
+          schema:
+            $ref: "#/components/schemas/ApiMajorVersion"
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: status
+          in: query
+          required: false
+          description: Dataset publication status. Defaults to published.
+          schema:
+            allOf:
+              - $ref: "#/components/schemas/CatalogDatasetStatus"
+            default: published
+          explode: false
+      responses:
+        "200":
+          description: The request has succeeded.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/RelatedDataset"
+        "400":
+          description: The server could not understand the request due to invalid syntax.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ProblemDetails"
+        "404":
+          description: The server cannot find the requested resource.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ProblemDetails"
+      tags:
+        - Catalog
+      security:
+        - {}
+tags:
+  - name: Catalog
+components:
+  schemas:
+    ApiMajorVersion:
+      type: string
+      pattern: ^[1-9][0-9]*$
+      description: Numeric API major version; route templates supply the v prefix.
+      example: "1"
+    CatalogSortBy:
+      type: string
+      enum:
+        - relevance
+        - title
+        - modified
+        - datasetLevel
+      description: Field to sort catalog search results by.
+    SortOrder:
+      type: string
+      enum:
+        - asc
+        - desc
+      description: Common sort direction for ordering results.
+    CatalogDatasetStatus:
+      type: string
+      enum:
+        - published
+        - draft
+        - retired
+      description: Supported dataset publication statuses. Values are case-insensitive in requests.
+    DatasetSummary:
+      type: object
+      required:
+        - identifier
+        - title
+        - description
+        - rights
+      properties:
+        identifier:
+          type: string
+          description: Unique dataset identifier (dct:identifier).
+        title:
+          type: string
+          description: Dataset title (dct:title).
+        description:
+          type: string
+          description: Short description of the dataset (dct:description).
+        rights:
+          type: string
+          description: Access rights — public, restricted, or internal (dct:rights).
+      description: Summary representation of a dataset returned by the list endpoint.
+    PaginationMetadata:
+      type: object
+      required:
+        - offset
+        - limit
+        - total
+        - hasMore
+      properties:
+        offset:
+          type: integer
+          format: int32
+          description: Number of items skipped before this page.
+        limit:
+          type: integer
+          format: int32
+          description: Maximum number of items requested for this page.
+        total:
+          type: integer
+          format: int64
+          description: Total number of matching items across all pages.
+        hasMore:
+          type: boolean
+          description: Indicates whether additional items exist beyond this page.
+      description: Common pagination metadata for all paginated responses.
+    FacetBucket:
+      type: object
+      required:
+        - value
+        - count
+        - selected
+      properties:
+        value:
+          type: string
+          description: The facet field value (e.g., a rights tier or periodicity string).
+        count:
+          type: integer
+          format: int64
+          description: Number of matched items with this value.
+        selected:
+          type: boolean
+          description: Indicates whether this facet value is currently selected/active in the filter.
+      description: A single facet bucket containing a distinct value and its count.
+    QueryEcho:
+      type: object
+      properties:
+        searchTerm:
+          type: string
+          description: Free-text search term that was applied.
+        filters:
+          type: object
+          additionalProperties:
+            type: array
+            items:
+              type: string
+          description: Filters that were applied (e.g., rights).
+        sortBy:
+          type: string
+          description: Sort field that was applied.
+        sortOrder:
+          type: string
+          description: Sort direction that was applied.
+      description: Query parameters echoed back to the client for transparency.
+    ResponseMetadata:
+      type: object
+      required:
+        - apiVersion
+        - timestamp
+      properties:
+        apiVersion:
+          type: string
+          description: API version that processed this request.
+        timestamp:
+          type: string
+          format: date-time
+          description: ISO 8601 timestamp when the response was generated.
+        processingTimeMs:
+          type: integer
+          format: int32
+          description: Server processing time in milliseconds.
+        requestId:
+          type: string
+          description: Unique request identifier for tracing and support.
+      description: Request metadata providing context about the API response.
+    Link:
+      type: object
+      required:
+        - rel
+        - href
+      properties:
+        rel:
+          type: string
+          description: Link relation type (e.g., self, next, prev, first, last).
+        href:
+          type: string
+          format: uri
+          description: |-
+            Target URI for this link.
+
+            When the API is behind Azure API Management (APIM), the backend must generate
+            links using the public APIM URL, not the internal backend URL. Implementation options:
+            1. Use X-Forwarded-Host and X-Forwarded-Proto headers passed by APIM
+            2. Use relative URLs (e.g., /catalog/v1/datasets?offset=100)
+            3. Configure the public base URL in application settings
+        method:
+          type: string
+          description: Optional HTTP method for this link (defaults to GET).
+        title:
+          type: string
+          description: Optional human-readable title for this link.
+      description: HATEOAS link for navigation and related resources.
+    ProblemDetails:
+      type: object
+      properties:
+        type:
+          type: string
+          description: A URI reference that identifies the problem type.
+        title:
+          type: string
+          description: A short, human-readable summary of the problem type.
+        status:
+          type: integer
+          format: int32
+          description: The HTTP status code generated by the origin server.
+        detail:
+          type: string
+          description: A human-readable explanation specific to this occurrence of the problem.
+        instance:
+          type: string
+          description: A URI reference that identifies the specific occurrence of the problem.
+      description: RFC 7807 Problem Details for HTTP APIs error response.
+    DatasetDetail:
+      type: object
+      required:
+        - identifier
+        - title
+        - description
+        - rights
+        - status
+        - issued
+        - modified
+        - publisher
+        - creator
+        - keywords
+        - language
+        - license
+        - slaTier
+        - visibility
+        - hasExplicitLineage
+        - unityReference
+        - distributions
+      properties:
+        identifier:
+          type: string
+          description: Unique dataset identifier (dct:identifier).
+        title:
+          type: string
+          description: Dataset title (dct:title).
+        description:
+          type: string
+          description: Short description of the dataset (dct:description).
+        rights:
+          type: string
+          description: Access rights — public, restricted, or internal (dct:rights).
+        status:
+          allOf:
+            - $ref: "#/components/schemas/CatalogDatasetStatus"
+          description: Publication status, selected using the status query parameter.
+        version:
+          type: string
+          description: Dataset version identifier; absent for some retired datasets.
+        dailyRecordVolume:
+          type: integer
+          format: int32
+          description: Expected daily record volume; absent for some retired datasets.
+        retiredDate:
+          type: string
+          format: date-time
+          description: Date the dataset was retired from discovery.
+        issued:
+          type: string
+          format: date
+          description: Date the dataset was first published (dct:issued).
+        modified:
+          type: string
+          format: date
+          description: Date the dataset was last modified (dct:modified).
+        publisher:
+          allOf:
+            - $ref: "#/components/schemas/Publisher"
+          description: Publishing organisation (dct:publisher).
+        creator:
+          type: string
+          description: Team or system that produces the dataset (dct:creator).
+        keywords:
+          type: array
+          items:
+            type: string
+          description: Free-text categorisation tags (dcat:keyword).
+        language:
+          type: string
+          description: ISO 639-1 language code (dct:language).
+        license:
+          type: string
+          format: uri
+          description: URI of the licence (dct:license).
+        spatialCoverage:
+          type: string
+          description: Geographic area the dataset covers (dct:spatial).
+        temporalCoverage:
+          allOf:
+            - $ref: "#/components/schemas/TemporalCoverage"
+          description: Time period the dataset covers (dct:temporal).
+        accrualPeriodicity:
+          type: string
+          description: How often the dataset is refreshed (dct:accrualPeriodicity).
+        granularity:
+          type: string
+          description: Include data detail level to support non-technical interpretation.Data granularity (for example,
+            half-hourly, daily, monthly).
+        slaTier:
+          type: string
+          description: Service-level tier — Gold, Silver, or Bronze (SDR extension).
+        visibility:
+          type: string
+          description: Visibility level — public, restricted, or internal (SDR extension).
+        layer:
+          type: string
+          description: Data processing layer (SDR extension).
+        hasExplicitLineage:
+          type: boolean
+          description: Whether this dataset defines explicit lineage relationships.
+        unityReference:
+          allOf:
+            - $ref: "#/components/schemas/UnityReference"
+          description: Unity Catalog coordinates (SDR extension).
+        distributions:
+          type: array
+          items:
+            $ref: "#/components/schemas/Distribution"
+          description: Available distribution channels (dcat:distribution).
+        exampleData:
+          allOf:
+            - $ref: "#/components/schemas/ExampleData"
+          description: Optional example data for the dataset.
+        schema:
+          allOf:
+            - $ref: "#/components/schemas/DatasetSchema"
+          description: Result schema and query parameters; absent for some retired datasets.
+      description: Detailed representation of a dataset returned by the get endpoint.
+    Publisher:
+      type: object
+      required:
+        - name
+        - uri
+      properties:
+        name:
+          type: string
+          description: Organisation name (foaf:name).
+        uri:
+          type: string
+          format: uri
+          description: Organisation website (foaf:homepage).
+      description: Publishing organisation (foaf:Agent).
+    TemporalCoverage:
+      type: object
+      required:
+        - start
+      properties:
+        start:
+          type: string
+          format: date
+          description: Start date of coverage (ISO 8601).
+        end:
+          type: string
+          format: date
+          description: End date of coverage; null means ongoing.
+      description: Time period the dataset covers (dct:temporal).
+    UnityReference:
+      type: object
+      required:
+        - catalog
+        - schema
+        - table
+      properties:
+        catalog:
+          type: string
+          description: Unity Catalog name.
+        schema:
+          type: string
+          description: Schema within the catalog.
+        table:
+          type: string
+          description: Table name.
+      description: Unity Catalog coordinates (SDR extension).
+    Distribution:
+      type: object
+      required:
+        - title
+        - accessUrl
+        - format
+        - mediaType
+      properties:
+        title:
+          type: string
+          description: Human-readable label (dct:title).
+        accessUrl:
+          type: string
+          format: uri
+          description: URL to access the data (dcat:accessURL).
+        format:
+          type: string
+          description: Data format, e.g. JSON, CSV, Parquet (dct:format).
+        mediaType:
+          type: string
+          description: IANA media type, e.g. application/json (dcat:mediaType).
+        conformsTo:
+          type: string
+          description: Standard the distribution conforms to (dct:conformsTo).
+        authentication:
+          type: string
+          description: Authentication method required to access the distribution.
+        requestType:
+          type: string
+          description: HTTP method used to request the distribution.
+      description: A distribution channel for a dataset (dcat:Distribution).
+    ExampleData:
+      type: object
+      required:
+        - columns
+        - rows
+      properties:
+        columns:
+          type: array
+          items:
+            type: string
+          description: Column labels for the sample rows.
+        rows:
+          type: array
+          items:
+            type: array
+            items: {}
+          description: Sample values, represented as JSON values.
+      description: Example rows displayed with dataset details.
+    DatasetSchema:
+      type: object
+      required:
+        - sourceTable
+        - resultFields
+        - parameters
+      properties:
+        sourceTable:
+          type: string
+        resultFields:
+          type: array
+          items:
+            $ref: "#/components/schemas/DatasetSchemaField"
+        parameters:
+          type: array
+          items:
+            $ref: "#/components/schemas/DatasetSchemaParameter"
+      description: Result schema and query interface for a dataset.
+    DatasetSchemaField:
+      type: object
+      required:
+        - name
+        - label
+        - type
+        - nullable
+      properties:
+        name:
+          type: string
+        label:
+          type: string
+        type:
+          type: string
+        nullable:
+          type: boolean
+        description:
+          type: string
+        allowedValues:
+          type: array
+          items:
+            type: string
+        precision:
+          type: integer
+          format: int32
+        scale:
+          type: integer
+          format: int32
+      description: A field in a dataset result schema.
+    DatasetSchemaParameter:
+      type: object
+      required:
+        - name
+        - label
+        - type
+        - required
+      properties:
+        name:
+          type: string
+        label:
+          type: string
+        type:
+          type: string
+        required:
+          type: boolean
+        description:
+          type: string
+        defaultValue:
+          type: string
+        allowedValues:
+          type: array
+          items:
+            type: string
+      description: A query parameter accepted by a dataset endpoint.
+    LineageResponse:
+      type: object
+      required:
+        - lineage
+      properties:
+        lineage:
+          $ref: "#/components/schemas/LineageGraph"
+      description: Response envelope for the dataset lineage endpoint.
+    LineageGraph:
+      type: object
+      required:
+        - root
+        - nodes
+        - edges
+        - truncated
+        - maxDepth
+      properties:
+        root:
+          type: string
+          description: Id of the node the lineage was requested for; always present in nodes at depth 0.
+        nodes:
+          type: array
+          items:
+            $ref: "#/components/schemas/LineageNode"
+          description: All nodes reachable within maxDepth, unique by id.
+        edges:
+          type: array
+          items:
+            $ref: "#/components/schemas/LineageEdge"
+          description: All discovered relationships between nodes, unique by (source, target, type).
+        truncated:
+          type: boolean
+          description: True when a traversal limit prevents the complete lineage graph from being returned.
+        maxDepth:
+          type: integer
+          format: int32
+          description: The BFS depth ceiling applied to this response.
+      description: Dataset lineage graph rooted at the requested dataset.
+    LineageNode:
+      type: object
+      required:
+        - id
+        - title
+        - depth
+        - type
+      properties:
+        id:
+          type: string
+          description: Stable identifier for the node. Matches the catalog dataset identifier when type is dataset.
+        title:
+          type: string
+          description: Human-readable display name (dct:title when type is dataset).
+        depth:
+          type: integer
+          format: int32
+          description: BFS distance from the lineage root; the root itself is depth 0.
+        type:
+          allOf:
+            - $ref: "#/components/schemas/LineageNodeType"
+          description: Whether this node is a cataloged SDR dataset or an external system reference.
+        identifier:
+          type: string
+          description: Catalog identifier, present only when type is dataset.
+        rights:
+          type: string
+          description: Access rights — public, restricted, or internal (dct:rights). Present only when type is dataset.
+        status:
+          type: string
+          description: Publication status (SDR extension). Present only when type is dataset.
+        layer:
+          type: string
+          description: Data processing layer for the dataset, when available.
+      description: A single node in a dataset lineage graph.
+    LineageNodeType:
+      type: string
+      enum:
+        - dataset
+        - system
+      description: Discriminates whether a lineage node is a cataloged SDR dataset or an external upstream/downstream system.
+    LineageEdge:
+      type: object
+      required:
+        - source
+        - target
+        - type
+      properties:
+        source:
+          type: string
+          description: Id of the upstream/source node.
+        target:
+          type: string
+          description: Id of the downstream/target node.
+        type:
+          allOf:
+            - $ref: "#/components/schemas/LineageEdgeType"
+          description: Nature of the relationship between source and target.
+      description: A directed relationship between two lineage nodes.
+    LineageEdgeType:
+      type: string
+      enum:
+        - derivesFrom
+        - produces
+      description: Nature of a lineage relationship between two nodes.
+    RelatedDataset:
+      type: object
+      required:
+        - identifier
+        - title
+        - description
+        - keywords
+        - relevanceReason
+        - rights
+        - status
+        - version
+        - dailyRecordVolume
+      properties:
+        identifier:
+          type: string
+          description: Unique dataset identifier (dct:identifier).
+        title:
+          type: string
+          description: Dataset title (dct:title).
+        description:
+          type: string
+          description: Short description of the dataset (dct:description).
+        publisher:
+          type: string
+          description: Organization that published the dataset (dct:publisher).
+        keywords:
+          type: array
+          items:
+            type: string
+          description: Keywords for dataset discovery (dcat:keyword).
+        relevanceReason:
+          type: string
+          description: Explanation of why this dataset is related.
+        rights:
+          type: string
+          description: Access rights — public, restricted, or internal (dct:rights).
+        status:
+          type: string
+          description: Publication status of the dataset (SDR extension).
+        version:
+          type: string
+          description: Dataset version identifier (SDR extension).
+        dailyRecordVolume:
+          type: integer
+          format: int32
+          description: Expected daily record volume for the dataset (SDR extension).
+      description: Related dataset with relevance context.
