@@ -10,9 +10,17 @@ const catalogSchema = fileURLToPath(
 const querySchema = fileURLToPath(
   new URL('../apis/query/v1/openapi.yaml', import.meta.url),
 );
+const generatedCatalogSchema = fileURLToPath(
+  new URL('./.generated/openapi/catalog-v1.json', import.meta.url),
+);
+const generatedQuerySchema = fileURLToPath(
+  new URL('./.generated/openapi/query-v1.json', import.meta.url),
+);
 const hasCatalogSchema = existsSync(catalogSchema);
 const hasQuerySchema = existsSync(querySchema);
 const hasCompleteContracts = hasCatalogSchema && hasQuerySchema;
+const pluginCatalogSchema = existsSync(generatedCatalogSchema) ? generatedCatalogSchema : catalogSchema;
+const pluginQuerySchema = existsSync(generatedQuerySchema) ? generatedQuerySchema : querySchema;
 const base = process.env.GITHUB_ACTIONS === 'true' ? '/Smart-Data-Repository' : '/';
 
 export default defineConfig({
@@ -37,12 +45,12 @@ export default defineConfig({
               {
                 base: 'reference/catalog/v1',
                 label: 'Catalog API v1',
-                schema: catalogSchema,
+                schema: pluginCatalogSchema,
               },
               {
                 base: 'reference/query/v1',
                 label: 'Query API v1',
-                schema: querySchema,
+                schema: pluginQuerySchema,
               },
             ]),
           ]
