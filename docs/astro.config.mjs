@@ -22,6 +22,15 @@ export default defineConfig({
     starlight({
       title: 'Smart Data Repository Developer Portal',
       description: 'Guides and API reference for Smart Data Repository developers.',
+      customCss: [
+        '@fontsource/lato/400.css',
+        '@fontsource/lato/700.css',
+        '@fontsource/lato/900.css',
+        './src/styles/sdr-brand.css',
+      ],
+      components: {
+        ThemeSelect: './src/components/PortalThemeSelect.astro',
+      },
       plugins: hasCompleteContracts
         ? [
             starlightOpenAPI([

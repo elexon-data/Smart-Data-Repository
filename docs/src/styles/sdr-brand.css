@@ -1,0 +1,95 @@
+html[data-portal-theme='sdr'] {
+  --sl-font: 'Lato', Arial, sans-serif;
+
+  --sl-color-white: #111111;
+  --sl-color-gray-1: #193c43;
+  --sl-color-gray-2: #536d72;
+  --sl-color-gray-3: #536d72;
+  --sl-color-gray-4: #748689;
+  --sl-color-gray-5: #c6ced0;
+  --sl-color-gray-6: #f2f3f3;
+  --sl-color-gray-7: #ffffff;
+  --sl-color-black: #ffffff;
+
+  --sl-color-accent-low: #e8e8f4;
+  --sl-color-accent: #000081;
+  --sl-color-accent-high: #000081;
+  --sl-color-text-accent: #000081;
+  --sl-color-text-invert: #ffffff;
+  --sl-color-bg: #ffffff;
+  --sl-color-bg-nav: #000081;
+  --sl-color-bg-sidebar: #f2f3f3;
+  --sl-color-bg-inline-code: #f2f3f3;
+  --sl-color-hairline: #c6ced0;
+  --sl-color-hairline-light: #c6ced0;
+  --sl-color-hairline-shade: #c6ced0;
+
+  --sl-color-green-low: #c1f3d0;
+  --sl-color-green: #017035;
+  --sl-color-green-high: #017035;
+  --sl-color-orange-low: #fff9cc;
+  --sl-color-orange: #fbe41e;
+  --sl-color-orange-high: #111111;
+  --sl-color-red-low: #fce8e8;
+  --sl-color-red: #d32f2f;
+  --sl-color-red-high: #d32f2f;
+
+  color-scheme: light;
+}
+
+html[data-portal-theme='sdr'] .site-title {
+  color: #ffffff;
+  font-family: 'Lato', Arial, sans-serif;
+  font-weight: 900;
+}
+
+html[data-portal-theme='sdr'] .portal-theme-select {
+  color: #ffffff;
+}
+
+html[data-portal-theme='sdr'] select option {
+  background: #ffffff;
+  color: #111111;
+}
+
+html[data-portal-theme='sdr'][data-theme='dark'] {
+  --sl-color-white: #f2f3f3;
+  --sl-color-gray-1: #f2f3f3;
+  --sl-color-gray-2: #c6ced0;
+  --sl-color-gray-3: #96bde7;
+  --sl-color-gray-4: #88999c;
+  --sl-color-gray-5: #2b2643;
+  --sl-color-gray-6: #221d39;
+  --sl-color-gray-7: #2b2643;
+  --sl-color-black: #221d39;
+
+  --sl-color-accent-low: #193c43;
+  --sl-color-accent: #01ff73;
+  --sl-color-accent-high: #01ff73;
+  --sl-color-text-accent: #01ff73;
+  --sl-color-text-invert: #111111;
+  --sl-color-bg: #221d39;
+  --sl-color-bg-nav: #000081;
+  --sl-color-bg-sidebar: #2b2643;
+  --sl-color-bg-inline-code: #2b2643;
+  --sl-color-hairline: #536d72;
+  --sl-color-hairline-light: #536d72;
+  --sl-color-hairline-shade: #221d39;
+
+  --sl-color-green-low: #193c43;
+  --sl-color-green: #01ff73;
+  --sl-color-green-high: #c1f3d0;
+  --sl-color-orange-low: #493f18;
+  --sl-color-orange: #fbe41e;
+  --sl-color-orange-high: #fbe41e;
+  --sl-color-red-low: #4a292f;
+  --sl-color-red: #f06b6b;
+  --sl-color-red-high: #ffc2c2;
+
+  color-scheme: dark;
+}
+
+html[data-portal-theme='sdr'][data-theme='dark'] select option {
+  background: #221d39;
+  color: #f2f3f3;
+}
