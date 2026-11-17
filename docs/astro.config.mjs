@@ -21,11 +21,9 @@ const hasQuerySchema = existsSync(querySchema);
 const hasCompleteContracts = hasCatalogSchema && hasQuerySchema;
 const pluginCatalogSchema = existsSync(generatedCatalogSchema) ? generatedCatalogSchema : catalogSchema;
 const pluginQuerySchema = existsSync(generatedQuerySchema) ? generatedQuerySchema : querySchema;
-const base = process.env.GITHUB_ACTIONS === 'true' ? '/Smart-Data-Repository' : '/';
-
 export default defineConfig({
-  site: 'https://elexon-data.github.io',
-  base,
+  site: 'https://docs.sdr.elexon.co.uk',
+  base: '/',
   integrations: [
     starlight({
       title: 'Smart Data Repository Developer Portal',

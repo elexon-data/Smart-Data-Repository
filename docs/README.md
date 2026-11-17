@@ -6,4 +6,6 @@ The API source inputs are `apis/catalog/v1/openapi.yaml` and `apis/query/v1/open
 
 The header's portal-theme selector switches between the default Starlight theme and an SDR-branded theme. This is separate from the light/dark control, and the selected portal theme is saved in the current browser.
 
-GitHub Pages serves the site at `/Smart-Data-Repository/`. Pull requests run tests and a build but do not deploy. A deployment is triggered by changes merged to `main` or manually from the Actions tab.
+GitHub Pages serves the site at `https://docs.sdr.elexon.co.uk/`. Pull requests run tests and a build but do not deploy. A deployment is triggered by changes merged to `main` or manually from the Actions tab.
+
+To configure the domain, first verify it for the GitHub organization, then add `docs.sdr.elexon.co.uk` as the custom domain in the repository's Pages settings. After adding it to GitHub, create a DNS CNAME for `docs.sdr.elexon.co.uk` pointing to `elexon-data.github.io`. Once DNS and the certificate are ready, enable HTTPS enforcement in the Pages settings. See [GitHub's custom domain guidance](https://docs.github.com/en/pages/configuring-a-custom-domain-for-your-github-pages-site/managing-a-custom-domain-for-your-github-pages-site).
