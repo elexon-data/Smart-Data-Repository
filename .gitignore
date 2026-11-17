@@ -1,0 +1,542 @@
+###############################################################################
+#                              COMMON                                         #
+###############################################################################
+
+# =============================================================================
+# Binary Files & Archives
+# =============================================================================
+# Binary files should not be in source control - they can't be diffed/merged.
+# Use package managers (NuGet, npm) to manage dependencies.
+*.dll
+*.exe
+*.mp4
+*.zip
+*.tar.gz
+*.7z
+*.cab
+*.msi
+*.msix
+*.msm
+*.msp
+*.appx
+*.appxbundle
+*.appxupload
+*.lscache
+
+# =============================================================================
+# Operating System Files
+# =============================================================================
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+._*
+
+# Windows
+Thumbs.db
+Desktop.ini
+ehthumbs.db
+
+# =============================================================================
+# Security-Sensitive Files
+# =============================================================================
+# NOTE: Deployment configuration under /config/.env.* is intentionally tracked.
+# Only exclude local development overrides (.env, .env.local, .env.*.local).
+.env
+.env.local
+.env.*.local
+config/.env.local
+config/.env.*.local
+web/.env
+web/.env.local
+web/.env.*.local
+*.pem
+*.key
+*.p12
+*.pfx
+secrets.json
+*.publishsettings
+
+# =============================================================================
+# Logs & Temporary Files
+# =============================================================================
+*.log
+*.tmp
+[Aa]zuriteConfig/
+**/[Aa]zuriteConfig
+__azurite_db_*.json
+__blobstorage__/
+__queuestorage__/
+__tablestorage__/
+[Ll]og/
+[Ll]ogs/
+~$*
+*~
+crash.log
+crash.*.log
+
+# =============================================================================
+# Backup Files
+# =============================================================================
+Backup*/
+*- [Bb]ackup.rdl
+*- [Bb]ackup ([0-9]).rdl
+*- [Bb]ackup ([0-9][0-9]).rdl
+*.rptproj.bak
+
+# =============================================================================
+# Build Output (Generic)
+# =============================================================================
+[Dd]ebug/
+[Dd]ebugPublic/
+[Rr]elease/
+[Rr]eleases/
+x64/
+x86/
+[Ww][Ii][Nn]32/
+[Aa][Rr][Mm]/
+[Aa][Rr][Mm]64/
+[Aa][Rr][Mm]64[Ee][Cc]/
+bld/
+[Oo]bj/
+[Oo]ut/
+**/[Bb]in/*
+dist/
+artifacts/
+tests/artifacts/
+.databricks-resources.json
+
+# Databricks bundle scenario runner output (tracked for review)
+!data/databricks/bundle/tests/fixtures/serving_dimensions/out/
+!data/databricks/bundle/tests/fixtures/serving_dimensions/out/**
+
+###############################################################################
+#                         LANGUAGE-SPECIFIC                                   #
+###############################################################################
+
+# =============================================================================
+# .NET / C#
+# =============================================================================
+# Build artifacts
+*.ilk
+*.meta
+*.obj
+*.idb
+*.iobj
+*.pch
+*.pdb
+*.ipdb
+*.pgc
+*.pgd
+*.sbr
+*.tlb
+*.tli
+*.tlh
+*.tlog
+*_i.c
+*_p.c
+*_h.h
+*.tmp_proj
+*_wpftmp.csproj
+project.lock.json
+project.fragment.lock.json
+*.binlog
+MSBuild_Logs/
+dlldata.c
+
+# Remove if you start using claude code.
+CLAUDE.md
+.claude
+
+# Response files (but keep Directory.Build.rsp)
+*.rsp
+!Directory.Build.rsp
+
+# NuGet
+*.nupkg
+*.snupkg
+**/[Pp]ackages/*
+!**/[Pp]ackages/build/
+*.nuget.props
+*.nuget.targets
+
+# Code coverage
+coverage*.json
+coverage*.xml
+coverage*.info
+*.coverage
+*.coveragexml
+
+# Test results
+[Tt]est[Rr]esult*/
+[Bb]uild[Ll]og.*
+*.trx
+*.VisualState.xml
+TestResult.xml
+nunit-*.xml
+*.received.*
+healthchecksdb
+
+# ASP.NET
+ScaffoldingReadMe.txt
+appsettings.*.local.json
+local.settings.json
+
+# Click-Once & Publishing
+publish/
+*.[Pp]ublish.xml
+*.azurePubxml
+*.pubxml
+*.publishproj
+PublishScripts/
+
+# Windows Store
+AppPackages/
+BundleArtifacts/
+Package.StoreAssociation.xml
+_pkginfo.txt
+
+# Mono
+mono_crash.*
+*.userprefs
+
+# SQL Server
+*.mdf
+*.ldf
+*.ndf
+
+# Business Intelligence
+*.rdl.data
+*.bim.layout
+*.bim_*.settings
+*.rptproj.rsuser
+
+# Database projects
+*.dbmdl
+*.dbproj.schemaview
+*.jfm
+
+# =============================================================================
+# Node.js / JavaScript / TypeScript
+# =============================================================================
+node_modules/
+.npm/
+.pnpm-store/
+.turbo/
+.cache/
+.sass-cache/
+.ntvs_analysis.dat
+
+# Generated OpenAPI type definitions (run `npm run generate:types` to regenerate)
+web/src/lib/api/*.d.ts
+
+# =============================================================================
+# TypeSpec / OpenAPI Documentation
+# =============================================================================
+# Generated HTML documentation from Redocly
+specs/api-docs/
+
+# =============================================================================
+# Python
+# =============================================================================
+**/__pycache__/
+*.pyc
+*.py[cod]
+*$py.class
+*.so
+.pytest_cache/
+
+# Python build artifacts
+*.egg-info/
+.installed.cfg
+*.egg
+*.whl
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+/lib/
+web/src/lib/api-types.d.ts
+lib64/
+parts/
+sdist/
+var/
+wheels/
+pip-wheel-metadata/
+MANIFEST
+
+# Python virtual environments
+venv/
+env/
+ENV/
+.venv
+
+# Python testing
+.coverage
+htmlcov/
+.tox/
+.hypothesis/
+
+# Python type checking
+.mypy_cache/
+.dmypy.json
+dmypy.json
+.pytype/
+
+# =============================================================================
+# Databricks Local State
+# =============================================================================
+**/.databricks/
+
+# =============================================================================
+# F#
+# =============================================================================
+**/.ionide/
+**/.fake/
+
+###############################################################################
+#                          TOOL-SPECIFIC                                      #
+###############################################################################
+
+# =============================================================================
+# Visual Studio
+# =============================================================================
+# User-specific files
+*.rsuser
+*.suo
+*.user
+*.userosscache
+*.sln.docstates
+
+# Cache/options
+.vs/
+Generated\ Files/
+*.[Cc]ache
+!?*.[Cc]ache/
+
+# Visual C++
+ipch/
+*.aps
+*.ncb
+*.opendb
+*.opensdf
+*.sdf
+*.cachefile
+*.VC.db
+*.VC.VC.opendb
+
+# Profiler
+*.psess
+*.vsp
+*.vspx
+*.sap
+*.e2e
+
+# Upgrade reports
+_UpgradeReport_Files/
+UpgradeLog*.XML
+UpgradeLog*.htm
+MigrationBackup/
+ServiceFabricBackup/
+
+# Local history
+**/.localhistory/
+.vshistory/
+
+# =============================================================================
+# VS Code
+# =============================================================================
+.vscode/*
+!.vscode/tasks.json
+!.vscode/launch.json
+!.vscode/extensions.json
+!.vscode/*.code-snippets
+!.vscode/settings.json.example
+.history/
+*.vsix
+
+# =============================================================================
+# JetBrains IDEs (Rider, etc.)
+# =============================================================================
+.idea/
+
+# =============================================================================
+# Vim
+# =============================================================================
+*.swp
+*.swo
+
+# =============================================================================
+# ReSharper
+# =============================================================================
+_ReSharper*/
+*.[Rr]e[Ss]harper
+*.DotSettings.user
+
+# =============================================================================
+# CodeRush
+# =============================================================================
+**/.cr/personal
+
+# =============================================================================
+# NCrunch
+# =============================================================================
+_NCrunch_*
+.NCrunch_*
+.*crunch*.local.xml
+nCrunchTemp_*
+
+# =============================================================================
+# DotCover / AxoCover / OpenCover
+# =============================================================================
+*.dotCover
+.axoCover/*
+!.axoCover/settings.json
+OpenCover/
+
+# =============================================================================
+# Other .NET Tools
+# =============================================================================
+# Chutzpah
+_Chutzpah*
+
+# MightyMoose
+*.mm.*
+AutoTest.Net/
+
+# DocProject
+DocProject/buildhelp/
+DocProject/Help/*.HxT
+DocProject/Help/*.HxC
+DocProject/Help/*.hhc
+DocProject/Help/*.hhk
+DocProject/Help/*.hhp
+DocProject/Help/Html2
+DocProject/Help/html
+
+# InstallShield
+[Ee]xpress/
+
+# GhostDoc
+*.GhostDoc.xml
+
+# Tabs Studio
+*.tss
+
+# JustMock
+*.jmconfig
+
+# MFractors
+**/.mfractor/
+
+# Paket
+**/.paket/paket.exe
+paket-files/
+
+# Fody
+FodyWeavers.xsd
+
+# StyleCop
+StyleCopReport.xml
+
+# BenchmarkDotNet
+BenchmarkDotNet.Artifacts/
+
+# =============================================================================
+# TeamCity
+# =============================================================================
+_TeamCity*
+
+# =============================================================================
+# Azure
+# =============================================================================
+# Azure Developer CLI (azd)
+# .azure/
+
+# Azure build output
+csx/
+*.build.csdef
+
+# Azure Emulator
+ecf/
+rcf/
+
+# Azurite (local Azure Storage emulator data)
+.azurite/
+
+# Azure Stream Analytics
+ASALocalRun/
+
+# =============================================================================
+# Terraform
+# =============================================================================
+.terraform/
+*.tfstate
+*.tfstate.*
+*.tfvars
+!example.tfvars
+override.tf
+override.tf.json
+*_override.tf
+*_override.tf.json
+.terraform.lock.hcl
+
+###############################################################################
+#                         PROJECT-SPECIFIC                                    #
+###############################################################################
+
+# TypeSpec output (regenerated from .tsp source)
+specs/**/tsp-output/
+
+# Build-time OpenAPI output (regenerated on build)
+api/**/openapi-output/
+
+# =============================================================================
+# SvelteKit / Vite / Storybook (web/)
+# =============================================================================
+.output
+.vercel
+.netlify
+.wrangler
+**/.svelte-kit
+web/build
+vite.config.js.timestamp-*
+vite.config.ts.timestamp-*
+# Playwright
+**/test-results/
+**/playwright-report/
+**/blob-report/
+**/allure-report/
+**/allure-results/
+**/monocart-report/
+**/playwright/.cache/
+**/playwright/.auth/
+web/src/lib/paraglide
+web/project.inlang/cache/
+*storybook.log
+storybook-static
+.vitest-attachments
+**screenshots**
+**/coverage/
+
+# =============================================================================
+# Test automation projects (tests/)
+# =============================================================================
+tests/**/.features-gen/
+tests/**/cucumber-report/
+tests/**/allure-report/
+tests/**/allure-results/
+tests/**/monocart-report/
+tests/**/.auth/
+tests/**/results/
+infra/**/results/
+
+# F# FAKE
+.fake
+docs/*-Review.md
+coverage/
+coverage/*
+coverage2/report/Summary.txt
+coverage2/
