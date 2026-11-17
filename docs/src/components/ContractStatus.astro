@@ -1,0 +1,47 @@
+---
+import { existsSync } from 'node:fs';
+import { resolve } from 'node:path';
+
+const repositoryRoot = resolve(process.cwd(), '..');
+const catalogContract = resolve(repositoryRoot, 'apis', 'catalog', 'v1', 'openapi.yaml');
+const queryContract = resolve(repositoryRoot, 'apis', 'query', 'v1', 'openapi.yaml');
+const hasCatalogSpec = existsSync(catalogContract);
+const hasQuerySpec = existsSync(queryContract);
+const base = `${import.meta.env.BASE_URL.replace(/\/+$/, '')}/`;
+---
+
+{hasCatalogSpec && hasQuerySpec ? (
+  <div class="status status-ready">
+    <p><strong>API contracts are available.</strong> The references below describe the published contracts; they do not confirm that an endpoint is operational or available to your account.</p>
+    <ul>
+      <li><a href={`${base}reference/catalog/v1/`}>Catalog API v1 reference</a> · <a href={`${base}reference/catalog/v1/openapi.yaml`}>OpenAPI YAML</a> · <a href={`${base}reference/catalog/v1/standalone.html`}>Standalone reference</a></li>
+      <li><a href={`${base}reference/query/v1/`}>Query API v1 reference</a> · <a href={`${base}reference/query/v1/openapi.yaml`}>OpenAPI YAML</a> · <a href={`${base}reference/query/v1/standalone.html`}>Standalone reference</a></li>
+    </ul>
+  </div>
+) : (
+  <div class="status status-pending">
+    <p><strong>API specifications are not yet published in this portal.</strong> Generated reference pages, downloadable YAML, and standalone references will appear when both versioned API contracts are supplied.</p>
+  </div>
+)}
+
+<style>
+  .status {
+    border-inline-start: 4px solid var(--sl-color-text-accent);
+    background: var(--sl-color-gray-6);
+    padding: 0.1rem 1rem;
+    margin-block: 1.5rem;
+  }
+
+  .status p:last-child,
+  .status ul:last-child {
+    margin-block-end: 1rem;
+  }
+
+  .status-ready {
+    border-color: var(--sl-color-green);
+  }
+
+  .status-pending {
+    border-color: var(--sl-color-orange);
+  }
+</style>

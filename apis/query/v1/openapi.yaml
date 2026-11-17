@@ -1,0 +1,4077 @@
+openapi: 3.0.0
+info:
+  title: SDR Query API
+  version: 1.0.0
+  description: Latest approved API contract. Inclusion does not confirm production availability. Check the developer
+    portal for release and availability information.
+  license:
+    name: Proprietary
+    url: https://www.elexon.co.uk/terms
+servers:
+  - url: https://api.elexon.co.uk
+    description: Production
+    variables: {}
+paths:
+  /api/query/v{version}/QueryJob:
+    post:
+      operationId: DS20_submitAggregatedAnnualEstimatesJob
+      summary: Submit aggregated annual estimates export
+      description: |-
+        Submit an asynchronous DS20 export.
+
+        The response contains a job identifier and a URL for polling its status.
+      parameters:
+        - name: version
+          in: path
+          required: true
+          description: API version.
+          schema:
+            $ref: "#/components/schemas/ApiMajorVersion"
+      responses:
+        "202":
+          description: The request has been accepted for processing, but processing has not yet completed.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/JobSubmitResponse"
+        "400":
+          description: The server could not understand the request due to invalid syntax.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ProblemDetails"
+        "401":
+          description: Access is unauthorized.
+        "403":
+          description: Access is forbidden.
+      tags:
+        - Query
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AggregatedAnnualEstimateJobRequest"
+        description: DS20 MPAN cohort request.
+      security:
+        - OAuth2Auth:
+            - api://sdr-api/level-2
+  /api/query/v{version}/QueryJob/{jobId}:
+    get:
+      operationId: DS20_getAggregatedAnnualEstimatesJobStatus
+      summary: Get aggregated annual estimates export status
+      description: Get the status and download URL for an asynchronous DS20 export.
+      parameters:
+        - name: version
+          in: path
+          required: true
+          description: API version.
+          schema:
+            $ref: "#/components/schemas/ApiMajorVersion"
+        - name: jobId
+          in: path
+          required: true
+          description: Query job identifier.
+          schema:
+            type: string
+      responses:
+        "200":
+          description: The request has succeeded.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AggregatedAnnualEstimateJobStatus"
+        "401":
+          description: Access is unauthorized.
+        "403":
+          description: Access is forbidden.
+        "404":
+          description: The server cannot find the requested resource.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ProblemDetails"
+      tags:
+        - Query
+      security:
+        - OAuth2Auth:
+            - api://sdr-api/level-2
+  /api/query/v{version}/QueryJob/{jobId}/download:
+    get:
+      operationId: DS20_downloadAggregatedAnnualEstimatesJob
+      summary: Download aggregated annual estimates export
+      description: Download the CSV result for a completed asynchronous DS20 export.
+      parameters:
+        - name: version
+          in: path
+          required: true
+          description: API version.
+          schema:
+            $ref: "#/components/schemas/ApiMajorVersion"
+        - name: jobId
+          in: path
+          required: true
+          description: Query job identifier.
+          schema:
+            type: string
+        - $ref: "#/components/parameters/DownloadParams"
+      responses:
+        "200":
+          description: The request has succeeded.
+          headers:
+            Content-Disposition:
+              required: true
+              schema:
+                type: string
+          content:
+            text/csv:
+              schema:
+                type: string
+                format: binary
+        "401":
+          description: Access is unauthorized.
+        "403":
+          description: Access is forbidden.
+        "404":
+          description: The server cannot find the requested resource.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ProblemDetails"
+        "409":
+          description: The request conflicts with the current state of the server.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ProblemDetails"
+      tags:
+        - Query
+      security:
+        - OAuth2Auth:
+            - api://sdr-api/level-2
+  /api/query/v{version}/aggregated-annual-estimates:
+    get:
+      operationId: DS20_getAggregatedAnnualEstimates
+      summary: Get aggregated annual estimates
+      parameters:
+        - name: version
+          in: path
+          required: true
+          description: API version.
+          schema:
+            $ref: "#/components/schemas/ApiMajorVersion"
+        - name: mpanCores
+          in: query
+          required: true
+          description: Comma-separated list of at least six distinct 13-digit MPAN Cores.
+          schema:
+            $ref: "#/components/schemas/MpanCoreCsv"
+          explode: false
+      responses:
+        "200":
+          description: The request has succeeded.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AggregatedAnnualEstimateResponse"
+        "400":
+          description: The server could not understand the request due to invalid syntax.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ProblemDetails"
+        "401":
+          description: Access is unauthorized.
+        "403":
+          description: Access is forbidden.
+        "503":
+          description: Service unavailable.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ProblemDetails"
+        "504":
+          description: Server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ProblemDetails"
+      tags:
+        - Query
+      security:
+        - OAuth2Auth:
+            - api://sdr-api/level-2
+  /api/query/v{version}/aggregated-annual-estimates/download:
+    post:
+      operationId: DS20_submitAggregatedAnnualEstimatesDownload
+      summary: Submit aggregated annual estimates download
+      description: Submit an asynchronous aggregated annual estimates export for the requested MPAN cohort.
+      parameters:
+        - name: version
+          in: path
+          required: true
+          description: API version.
+          schema:
+            $ref: "#/components/schemas/ApiMajorVersion"
+        - name: mpanCores
+          in: query
+          required: true
+          description: Comma-separated list of at least six distinct 13-digit MPAN Cores.
+          schema:
+            $ref: "#/components/schemas/MpanCoreCsv"
+          explode: false
+      responses:
+        "202":
+          description: The request has been accepted for processing, but processing has not yet completed.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/JobSubmitResponse"
+        "400":
+          description: The server could not understand the request due to invalid syntax.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ProblemDetails"
+        "401":
+          description: Access is unauthorized.
+        "403":
+          description: Access is forbidden.
+      tags:
+        - Query
+      security:
+        - OAuth2Auth:
+            - api://sdr-api/level-2
+  /api/query/v{version}/aggregated-consumption-and-generation-for-multiple-meters/daily:
+    get:
+      operationId: DS22_getDaily
+      summary: Daily DS22 aggregated consumption and generation
+      parameters:
+        - name: version
+          in: path
+          required: true
+          schema:
+            $ref: "#/components/schemas/ApiMajorVersion"
+        - $ref: "#/components/parameters/PaginationParams.offset"
+        - $ref: "#/components/parameters/PaginationParams.limit"
+        - $ref: "#/components/parameters/Ds22CommonQueryParams.startDate"
+        - $ref: "#/components/parameters/Ds22CommonQueryParams.endDate"
+        - $ref: "#/components/parameters/Ds22CommonQueryParams.mpanCore"
+        - $ref: "#/components/parameters/Ds22CommonQueryParams.qualityIndicator"
+        - $ref: "#/components/parameters/Ds22CommonQueryParams.energyDirection"
+      responses:
+        "200":
+          description: The request has succeeded.
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - items
+                  - pagination
+                properties:
+                  items:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/Ds22DailyRecord"
+                    description: The data records for the current page.
+                  pagination:
+                    allOf:
+                      - $ref: "#/components/schemas/PaginationMetadata"
+                    description: Pagination metadata for this page.
+                  meta:
+                    allOf:
+                      - $ref: "#/components/schemas/ResponseMetadata"
+                    description: Request metadata providing context about the response.
+                  links:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/Link"
+                    description: HATEOAS links for navigation.
+                description: Paginated response for dataset queries containing items and pagination metadata only.
+        "400":
+          description: The server could not understand the request due to invalid syntax.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ProblemDetails"
+        "401":
+          description: Access is unauthorized.
+        "403":
+          description: Access is forbidden.
+        "404":
+          description: The server cannot find the requested resource.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ProblemDetails"
+        "503":
+          description: Service unavailable.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ProblemDetails"
+        "504":
+          description: Server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ProblemDetails"
+      tags:
+        - Query
+      security:
+        - OAuth2Auth:
+            - api://sdr-api/level-2
+  /api/query/v{version}/aggregated-consumption-and-generation-for-multiple-meters/half-hourly:
+    get:
+      operationId: DS22_getHalfHourly
+      summary: Half-hourly DS22 aggregated consumption and generation
+      parameters:
+        - name: version
+          in: path
+          required: true
+          schema:
+            $ref: "#/components/schemas/ApiMajorVersion"
+        - $ref: "#/components/parameters/PaginationParams.offset"
+        - $ref: "#/components/parameters/PaginationParams.limit"
+        - $ref: "#/components/parameters/Ds22CommonQueryParams.startDate"
+        - $ref: "#/components/parameters/Ds22CommonQueryParams.endDate"
+        - $ref: "#/components/parameters/Ds22CommonQueryParams.mpanCore"
+        - $ref: "#/components/parameters/Ds22CommonQueryParams.qualityIndicator"
+        - $ref: "#/components/parameters/Ds22CommonQueryParams.energyDirection"
+        - $ref: "#/components/parameters/Ds22HalfHourlyQueryParams.settlementPeriodStart"
+        - $ref: "#/components/parameters/Ds22HalfHourlyQueryParams.settlementPeriodEnd"
+      responses:
+        "200":
+          description: The request has succeeded.
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - items
+                  - pagination
+                properties:
+                  items:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/Ds22HalfHourlyRecord"
+                    description: The data records for the current page.
+                  pagination:
+                    allOf:
+                      - $ref: "#/components/schemas/PaginationMetadata"
+                    description: Pagination metadata for this page.
+                  meta:
+                    allOf:
+                      - $ref: "#/components/schemas/ResponseMetadata"
+                    description: Request metadata providing context about the response.
+                  links:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/Link"
+                    description: HATEOAS links for navigation.
+                description: Paginated response for dataset queries containing items and pagination metadata only.
+        "400":
+          description: The server could not understand the request due to invalid syntax.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ProblemDetails"
+        "401":
+          description: Access is unauthorized.
+        "403":
+          description: Access is forbidden.
+        "404":
+          description: The server cannot find the requested resource.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ProblemDetails"
+        "503":
+          description: Service unavailable.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ProblemDetails"
+        "504":
+          description: Server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ProblemDetails"
+      tags:
+        - Query
+      security:
+        - OAuth2Auth:
+            - api://sdr-api/level-2
+  /api/query/v{version}/aggregated-consumption-and-generation-for-multiple-meters/monthly:
+    get:
+      operationId: DS22_getMonthly
+      summary: Monthly DS22 aggregated consumption and generation
+      parameters:
+        - name: version
+          in: path
+          required: true
+          schema:
+            $ref: "#/components/schemas/ApiMajorVersion"
+        - $ref: "#/components/parameters/PaginationParams.offset"
+        - $ref: "#/components/parameters/PaginationParams.limit"
+        - $ref: "#/components/parameters/Ds22CommonQueryParams.startDate"
+        - $ref: "#/components/parameters/Ds22CommonQueryParams.endDate"
+        - $ref: "#/components/parameters/Ds22CommonQueryParams.mpanCore"
+        - $ref: "#/components/parameters/Ds22CommonQueryParams.qualityIndicator"
+        - $ref: "#/components/parameters/Ds22CommonQueryParams.energyDirection"
+      responses:
+        "200":
+          description: The request has succeeded.
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - items
+                  - pagination
+                properties:
+                  items:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/Ds22MonthlyRecord"
+                    description: The data records for the current page.
+                  pagination:
+                    allOf:
+                      - $ref: "#/components/schemas/PaginationMetadata"
+                    description: Pagination metadata for this page.
+                  meta:
+                    allOf:
+                      - $ref: "#/components/schemas/ResponseMetadata"
+                    description: Request metadata providing context about the response.
+                  links:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/Link"
+                    description: HATEOAS links for navigation.
+                description: Paginated response for dataset queries containing items and pagination metadata only.
+        "400":
+          description: The server could not understand the request due to invalid syntax.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ProblemDetails"
+        "401":
+          description: Access is unauthorized.
+        "403":
+          description: Access is forbidden.
+        "404":
+          description: The server cannot find the requested resource.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ProblemDetails"
+        "503":
+          description: Service unavailable.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ProblemDetails"
+        "504":
+          description: Server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ProblemDetails"
+      tags:
+        - Query
+      security:
+        - OAuth2Auth:
+            - api://sdr-api/level-2
+  /api/query/v{version}/ds14/daily:
+    get:
+      operationId: DS14_getNumberOfMetersByGspDaily
+      summary: Daily GSP meter counts
+      description: |-
+        Query daily GSP meter counts and consumption aggregates.
+
+        Returns daily aggregated consumption and meter counts grouped by
+        GSP group, supplier, and meter type. Includes actual vs estimated
+        breakdown and quality percentages.
+      parameters:
+        - name: version
+          in: path
+          required: true
+          description: API version.
+          schema:
+            $ref: "#/components/schemas/ApiMajorVersion"
+        - $ref: "#/components/parameters/PaginationParams.offset"
+        - $ref: "#/components/parameters/PaginationParams.limit"
+        - $ref: "#/components/parameters/DateRangeParams.startDate"
+        - $ref: "#/components/parameters/DateRangeParams.endDate"
+        - $ref: "#/components/parameters/GspGroupIdsParams"
+        - $ref: "#/components/parameters/MeasurementQuantityParam"
+      responses:
+        "200":
+          description: The request has succeeded.
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - items
+                  - pagination
+                properties:
+                  items:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/GspMeterCountDailyRecord"
+                    description: The data records for the current page.
+                  pagination:
+                    allOf:
+                      - $ref: "#/components/schemas/PaginationMetadata"
+                    description: Pagination metadata for this page.
+                  meta:
+                    allOf:
+                      - $ref: "#/components/schemas/ResponseMetadata"
+                    description: Request metadata providing context about the response.
+                  links:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/Link"
+                    description: HATEOAS links for navigation.
+                description: Paginated response for dataset queries containing items and pagination metadata only.
+        "400":
+          description: The server could not understand the request due to invalid syntax.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ProblemDetails"
+        "401":
+          description: Access is unauthorized.
+        "403":
+          description: Access is forbidden.
+      tags:
+        - Query
+      security:
+        - OAuth2Auth:
+            - api://sdr-api/level-1
+  /api/query/v{version}/ds14/daily/download:
+    get:
+      operationId: DS14_downloadNumberOfMetersByGspDaily
+      summary: Download daily GSP meter counts
+      description: |-
+        Download daily GSP meter counts as streaming CSV or JSON Lines.
+
+        Returns the full result set as a streaming download without pagination.
+        Accepts the same filter parameters as the paginated endpoint but streams
+        all matching records. Default format is CSV.
+      parameters:
+        - name: version
+          in: path
+          required: true
+          description: API version.
+          schema:
+            $ref: "#/components/schemas/ApiMajorVersion"
+        - $ref: "#/components/parameters/DownloadParams"
+        - $ref: "#/components/parameters/DateRangeParams.startDate"
+        - $ref: "#/components/parameters/DateRangeParams.endDate"
+        - $ref: "#/components/parameters/GspGroupIdsParams"
+        - $ref: "#/components/parameters/MeasurementQuantityParam"
+      responses:
+        "200":
+          description: The request has succeeded.
+          headers:
+            Content-Disposition:
+              required: true
+              schema:
+                type: string
+          content:
+            text/csv:
+              schema:
+                type: string
+                format: binary
+            application/x-ndjson:
+              schema:
+                type: string
+                format: binary
+        "400":
+          description: The server could not understand the request due to invalid syntax.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ProblemDetails"
+        "401":
+          description: Access is unauthorized.
+        "403":
+          description: Access is forbidden.
+      tags:
+        - Query
+      security:
+        - OAuth2Auth:
+            - api://sdr-api/level-1
+  /api/query/v{version}/ds14/monthly:
+    get:
+      operationId: DS14_getNumberOfMetersByGspMonthly
+      summary: Monthly GSP meter counts
+      description: |-
+        Query monthly GSP meter counts and consumption aggregates, or download the full
+        result set as a streamed CSV when <c>format=csv</c> is supplied.
+
+        Returns monthly aggregated consumption and meter counts grouped by
+        year-month, GSP group, supplier, and meter type. Includes actual vs
+        estimated breakdown and quality percentages.
+      parameters:
+        - name: version
+          in: path
+          required: true
+          schema:
+            $ref: "#/components/schemas/ApiMajorVersion"
+        - $ref: "#/components/parameters/PaginationParams.offset"
+        - $ref: "#/components/parameters/PaginationParams.limit"
+        - $ref: "#/components/parameters/DateRangeParams.startDate"
+        - $ref: "#/components/parameters/DateRangeParams.endDate"
+        - $ref: "#/components/parameters/GspGroupIdsParams"
+        - $ref: "#/components/parameters/MeasurementQuantityParam"
+      responses:
+        "200":
+          description: The request has succeeded.
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - items
+                  - pagination
+                properties:
+                  items:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/GspMeterCountMonthlyRecord"
+                    description: The data records for the current page.
+                  pagination:
+                    allOf:
+                      - $ref: "#/components/schemas/PaginationMetadata"
+                    description: Pagination metadata for this page.
+                  meta:
+                    allOf:
+                      - $ref: "#/components/schemas/ResponseMetadata"
+                    description: Request metadata providing context about the response.
+                  links:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/Link"
+                    description: HATEOAS links for navigation.
+                description: Paginated response for dataset queries containing items and pagination metadata only.
+        "400":
+          description: The server could not understand the request due to invalid syntax.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ProblemDetails"
+        "401":
+          description: Access is unauthorized.
+        "403":
+          description: Access is forbidden.
+      tags:
+        - Query
+      security:
+        - OAuth2Auth:
+            - api://sdr-api/level-1
+  /api/query/v{version}/ds14/monthly/download:
+    get:
+      operationId: DS14_downloadNumberOfMetersByGspMonthly
+      summary: Download monthly GSP meter counts
+      description: |-
+        Download monthly GSP meter counts as streaming CSV or JSON Lines.
+
+        Returns the full result set as a streaming download without pagination.
+        Accepts the same filter parameters as the paginated endpoint but streams
+        all matching records. Default format is CSV.
+      parameters:
+        - name: version
+          in: path
+          required: true
+          description: API version.
+          schema:
+            $ref: "#/components/schemas/ApiMajorVersion"
+        - $ref: "#/components/parameters/DownloadParams"
+        - $ref: "#/components/parameters/DateRangeParams.startDate"
+        - $ref: "#/components/parameters/DateRangeParams.endDate"
+        - $ref: "#/components/parameters/GspGroupIdsParams"
+        - $ref: "#/components/parameters/MeasurementQuantityParam"
+      responses:
+        "200":
+          description: The request has succeeded.
+          headers:
+            Content-Disposition:
+              required: true
+              schema:
+                type: string
+          content:
+            text/csv:
+              schema:
+                type: string
+                format: binary
+            application/x-ndjson:
+              schema:
+                type: string
+                format: binary
+        "400":
+          description: The server could not understand the request due to invalid syntax.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ProblemDetails"
+        "401":
+          description: Access is unauthorized.
+        "403":
+          description: Access is forbidden.
+      tags:
+        - Query
+      security:
+        - OAuth2Auth:
+            - api://sdr-api/level-1
+  /api/query/v{version}/gsp-group-consumption-and-generation/daily:
+    get:
+      operationId: DS21_getDailyGspGroupConsumption
+      summary: Daily GSP group consumption
+      parameters:
+        - name: version
+          in: path
+          required: true
+          schema:
+            $ref: "#/components/schemas/ApiMajorVersion"
+        - $ref: "#/components/parameters/DateParams.startDate"
+        - $ref: "#/components/parameters/DateParams.endDate"
+        - $ref: "#/components/parameters/GspGroupIdParams"
+        - $ref: "#/components/parameters/QualityIndicatorParams"
+        - $ref: "#/components/parameters/Ds21EnergyDirectionParams"
+        - $ref: "#/components/parameters/PaginationParams.offset"
+        - $ref: "#/components/parameters/PaginationParams.limit"
+      responses:
+        "200":
+          description: The request has succeeded.
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - items
+                  - pagination
+                properties:
+                  items:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/Ds21DailyGspGroupConsumptionRecord"
+                    description: The data records for the current page.
+                  pagination:
+                    allOf:
+                      - $ref: "#/components/schemas/PaginationMetadata"
+                    description: Pagination metadata for this page.
+                  meta:
+                    allOf:
+                      - $ref: "#/components/schemas/ResponseMetadata"
+                    description: Request metadata providing context about the response.
+                  links:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/Link"
+                    description: HATEOAS links for navigation.
+                description: Paginated response for dataset queries containing items and pagination metadata only.
+        "400":
+          description: The server could not understand the request due to invalid syntax.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ProblemDetails"
+        "401":
+          description: Access is unauthorized.
+        "403":
+          description: Access is forbidden.
+        "503":
+          description: Service unavailable.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ProblemDetails"
+        "504":
+          description: Server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ProblemDetails"
+      tags:
+        - Query
+      security:
+        - OAuth2Auth:
+            - api://sdr-api/level-2
+  /api/query/v{version}/gsp-group-consumption-and-generation/daily/download:
+    post:
+      operationId: DS21_submitDailyGspGroupConsumptionDownload
+      summary: Submit daily GSP group consumption download
+      description: Submit an asynchronous daily DS21 export.
+      parameters:
+        - name: version
+          in: path
+          required: true
+          schema:
+            $ref: "#/components/schemas/ApiMajorVersion"
+        - $ref: "#/components/parameters/DateParams.startDate"
+        - $ref: "#/components/parameters/DateParams.endDate"
+        - $ref: "#/components/parameters/GspGroupIdParams"
+        - $ref: "#/components/parameters/QualityIndicatorParams"
+        - $ref: "#/components/parameters/Ds21EnergyDirectionParams"
+        - $ref: "#/components/parameters/Ds21DailyMonthlyDownloadParams.limit"
+      responses:
+        "202":
+          description: The request has been accepted for processing, but processing has not yet completed.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/JobSubmitResponse"
+        "400":
+          description: The server could not understand the request due to invalid syntax.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ProblemDetails"
+        "401":
+          description: Access is unauthorized.
+        "403":
+          description: Access is forbidden.
+      tags:
+        - Query
+      security:
+        - OAuth2Auth:
+            - api://sdr-api/level-2
+    get:
+      operationId: DS21_downloadDailyGspGroupConsumption
+      summary: Daily GSP group consumption - Download
+      description: Download the complete daily DS21 result as a streaming CSV file.
+      parameters:
+        - name: version
+          in: path
+          required: true
+          schema:
+            $ref: "#/components/schemas/ApiMajorVersion"
+        - $ref: "#/components/parameters/DateParams.startDate"
+        - $ref: "#/components/parameters/DateParams.endDate"
+        - $ref: "#/components/parameters/GspGroupIdParams"
+        - $ref: "#/components/parameters/QualityIndicatorParams"
+        - $ref: "#/components/parameters/Ds21EnergyDirectionParams"
+        - $ref: "#/components/parameters/PaginationParams.offset"
+        - $ref: "#/components/parameters/PaginationParams.limit"
+      responses:
+        "200":
+          description: The request has succeeded.
+          headers:
+            Content-Disposition:
+              required: true
+              schema:
+                type: string
+          content:
+            text/csv:
+              schema:
+                type: string
+                format: binary
+        "400":
+          description: The server could not understand the request due to invalid syntax.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ProblemDetails"
+        "401":
+          description: Access is unauthorized.
+        "403":
+          description: Access is forbidden.
+        "503":
+          description: Service unavailable.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ProblemDetails"
+        "504":
+          description: Server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ProblemDetails"
+      tags:
+        - Query
+      security:
+        - OAuth2Auth:
+            - api://sdr-api/level-2
+  /api/query/v{version}/gsp-group-consumption-and-generation/half-hourly:
+    get:
+      operationId: DS21_getHalfHourlyGspGroupConsumption
+      summary: Half-hourly GSP group consumption
+      parameters:
+        - name: version
+          in: path
+          required: true
+          schema:
+            $ref: "#/components/schemas/ApiMajorVersion"
+        - $ref: "#/components/parameters/DateParams.startDate"
+        - $ref: "#/components/parameters/DateParams.endDate"
+        - $ref: "#/components/parameters/GspGroupIdParams"
+        - $ref: "#/components/parameters/QualityIndicatorParams"
+        - $ref: "#/components/parameters/Ds21EnergyDirectionParams"
+        - $ref: "#/components/parameters/PaginationParams.offset"
+        - $ref: "#/components/parameters/PaginationParams.limit"
+        - $ref: "#/components/parameters/SettlementPeriodBounds.settlementPeriodStart"
+        - $ref: "#/components/parameters/SettlementPeriodBounds.settlementPeriodEnd"
+      responses:
+        "200":
+          description: The request has succeeded.
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - items
+                  - pagination
+                properties:
+                  items:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/Ds21HalfHourlyGspGroupConsumptionRecord"
+                    description: The data records for the current page.
+                  pagination:
+                    allOf:
+                      - $ref: "#/components/schemas/PaginationMetadata"
+                    description: Pagination metadata for this page.
+                  meta:
+                    allOf:
+                      - $ref: "#/components/schemas/ResponseMetadata"
+                    description: Request metadata providing context about the response.
+                  links:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/Link"
+                    description: HATEOAS links for navigation.
+                description: Paginated response for dataset queries containing items and pagination metadata only.
+        "400":
+          description: The server could not understand the request due to invalid syntax.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ProblemDetails"
+        "401":
+          description: Access is unauthorized.
+        "403":
+          description: Access is forbidden.
+        "503":
+          description: Service unavailable.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ProblemDetails"
+        "504":
+          description: Server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ProblemDetails"
+      tags:
+        - Query
+      security:
+        - OAuth2Auth:
+            - api://sdr-api/level-2
+  /api/query/v{version}/gsp-group-consumption-and-generation/half-hourly/download:
+    post:
+      operationId: DS21_submitHalfHourlyGspGroupConsumptionDownload
+      summary: Submit half-hourly GSP group consumption download
+      description: Submit an asynchronous half-hourly DS21 export.
+      parameters:
+        - name: version
+          in: path
+          required: true
+          schema:
+            $ref: "#/components/schemas/ApiMajorVersion"
+        - $ref: "#/components/parameters/DateParams.startDate"
+        - $ref: "#/components/parameters/DateParams.endDate"
+        - $ref: "#/components/parameters/GspGroupIdParams"
+        - $ref: "#/components/parameters/QualityIndicatorParams"
+        - $ref: "#/components/parameters/Ds21EnergyDirectionParams"
+        - $ref: "#/components/parameters/SettlementPeriodBounds.settlementPeriodStart"
+        - $ref: "#/components/parameters/SettlementPeriodBounds.settlementPeriodEnd"
+        - $ref: "#/components/parameters/Ds21HalfHourlyDownloadParams.limit"
+      responses:
+        "202":
+          description: The request has been accepted for processing, but processing has not yet completed.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/JobSubmitResponse"
+        "400":
+          description: The server could not understand the request due to invalid syntax.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ProblemDetails"
+        "401":
+          description: Access is unauthorized.
+        "403":
+          description: Access is forbidden.
+      tags:
+        - Query
+      security:
+        - OAuth2Auth:
+            - api://sdr-api/level-2
+    get:
+      operationId: DS21_downloadHalfHourlyGspGroupConsumption
+      summary: Half-hourly GSP group consumption - Download
+      description: Download the complete half-hourly DS21 result as a streaming CSV file.
+      parameters:
+        - name: version
+          in: path
+          required: true
+          schema:
+            $ref: "#/components/schemas/ApiMajorVersion"
+        - $ref: "#/components/parameters/DateParams.startDate"
+        - $ref: "#/components/parameters/DateParams.endDate"
+        - $ref: "#/components/parameters/GspGroupIdParams"
+        - $ref: "#/components/parameters/QualityIndicatorParams"
+        - $ref: "#/components/parameters/Ds21EnergyDirectionParams"
+        - $ref: "#/components/parameters/PaginationParams.offset"
+        - $ref: "#/components/parameters/PaginationParams.limit"
+        - $ref: "#/components/parameters/SettlementPeriodBounds.settlementPeriodStart"
+        - $ref: "#/components/parameters/SettlementPeriodBounds.settlementPeriodEnd"
+      responses:
+        "200":
+          description: The request has succeeded.
+          headers:
+            Content-Disposition:
+              required: true
+              schema:
+                type: string
+          content:
+            text/csv:
+              schema:
+                type: string
+                format: binary
+        "400":
+          description: The server could not understand the request due to invalid syntax.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ProblemDetails"
+        "401":
+          description: Access is unauthorized.
+        "403":
+          description: Access is forbidden.
+        "503":
+          description: Service unavailable.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ProblemDetails"
+        "504":
+          description: Server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ProblemDetails"
+      tags:
+        - Query
+      security:
+        - OAuth2Auth:
+            - api://sdr-api/level-2
+  /api/query/v{version}/gsp-group-consumption-and-generation/monthly:
+    get:
+      operationId: DS21_getMonthlyGspGroupConsumption
+      summary: Monthly GSP group consumption
+      parameters:
+        - name: version
+          in: path
+          required: true
+          schema:
+            $ref: "#/components/schemas/ApiMajorVersion"
+        - $ref: "#/components/parameters/DateParams.startDate"
+        - $ref: "#/components/parameters/DateParams.endDate"
+        - $ref: "#/components/parameters/GspGroupIdParams"
+        - $ref: "#/components/parameters/QualityIndicatorParams"
+        - $ref: "#/components/parameters/Ds21EnergyDirectionParams"
+        - $ref: "#/components/parameters/PaginationParams.offset"
+        - $ref: "#/components/parameters/PaginationParams.limit"
+      responses:
+        "200":
+          description: The request has succeeded.
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - items
+                  - pagination
+                properties:
+                  items:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/Ds21MonthlyGspGroupConsumptionRecord"
+                    description: The data records for the current page.
+                  pagination:
+                    allOf:
+                      - $ref: "#/components/schemas/PaginationMetadata"
+                    description: Pagination metadata for this page.
+                  meta:
+                    allOf:
+                      - $ref: "#/components/schemas/ResponseMetadata"
+                    description: Request metadata providing context about the response.
+                  links:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/Link"
+                    description: HATEOAS links for navigation.
+                description: Paginated response for dataset queries containing items and pagination metadata only.
+        "400":
+          description: The server could not understand the request due to invalid syntax.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ProblemDetails"
+        "401":
+          description: Access is unauthorized.
+        "403":
+          description: Access is forbidden.
+        "503":
+          description: Service unavailable.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ProblemDetails"
+        "504":
+          description: Server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ProblemDetails"
+      tags:
+        - Query
+      security:
+        - OAuth2Auth:
+            - api://sdr-api/level-2
+  /api/query/v{version}/gsp-group-consumption-and-generation/monthly/download:
+    post:
+      operationId: DS21_submitMonthlyGspGroupConsumptionDownload
+      summary: Submit monthly GSP group consumption download
+      description: Submit an asynchronous monthly DS21 export.
+      parameters:
+        - name: version
+          in: path
+          required: true
+          schema:
+            $ref: "#/components/schemas/ApiMajorVersion"
+        - $ref: "#/components/parameters/DateParams.startDate"
+        - $ref: "#/components/parameters/DateParams.endDate"
+        - $ref: "#/components/parameters/GspGroupIdParams"
+        - $ref: "#/components/parameters/QualityIndicatorParams"
+        - $ref: "#/components/parameters/Ds21EnergyDirectionParams"
+        - $ref: "#/components/parameters/Ds21DailyMonthlyDownloadParams.limit"
+      responses:
+        "202":
+          description: The request has been accepted for processing, but processing has not yet completed.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/JobSubmitResponse"
+        "400":
+          description: The server could not understand the request due to invalid syntax.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ProblemDetails"
+        "401":
+          description: Access is unauthorized.
+        "403":
+          description: Access is forbidden.
+      tags:
+        - Query
+      security:
+        - OAuth2Auth:
+            - api://sdr-api/level-2
+    get:
+      operationId: DS21_downloadMonthlyGspGroupConsumption
+      summary: Monthly GSP group consumption - Download
+      description: Download the complete monthly DS21 result as a streaming CSV file.
+      parameters:
+        - name: version
+          in: path
+          required: true
+          schema:
+            $ref: "#/components/schemas/ApiMajorVersion"
+        - $ref: "#/components/parameters/DateParams.startDate"
+        - $ref: "#/components/parameters/DateParams.endDate"
+        - $ref: "#/components/parameters/GspGroupIdParams"
+        - $ref: "#/components/parameters/QualityIndicatorParams"
+        - $ref: "#/components/parameters/Ds21EnergyDirectionParams"
+        - $ref: "#/components/parameters/PaginationParams.offset"
+        - $ref: "#/components/parameters/PaginationParams.limit"
+      responses:
+        "200":
+          description: The request has succeeded.
+          headers:
+            Content-Disposition:
+              required: true
+              schema:
+                type: string
+          content:
+            text/csv:
+              schema:
+                type: string
+                format: binary
+        "400":
+          description: The server could not understand the request due to invalid syntax.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ProblemDetails"
+        "401":
+          description: Access is unauthorized.
+        "403":
+          description: Access is forbidden.
+        "503":
+          description: Service unavailable.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ProblemDetails"
+        "504":
+          description: Server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ProblemDetails"
+      tags:
+        - Query
+      security:
+        - OAuth2Auth:
+            - api://sdr-api/level-2
+  /api/query/v{version}/individual-consumption-generation:
+    post:
+      operationId: DS01_submitIndividualConsumptionJob
+      summary: Submit individual MPAN query job
+      description: |-
+        Submit an async query job for individual MPAN consumption/generation.
+
+        Returns immediately with a job ID and poll URL. The query executes
+        asynchronously and results are stored in Azure Blob Storage. Poll the
+        returned URL to get job status and download link when ready.
+      parameters:
+        - name: version
+          in: path
+          required: true
+          description: API version.
+          schema:
+            $ref: "#/components/schemas/ApiMajorVersion"
+        - $ref: "#/components/parameters/DateRangeParams.startDate"
+        - $ref: "#/components/parameters/DateRangeParams.endDate"
+        - $ref: "#/components/parameters/MpanCoreParams"
+        - $ref: "#/components/parameters/MeasurementQuantityParam"
+        - $ref: "#/components/parameters/QualityStatusParam"
+      responses:
+        "202":
+          description: The request has been accepted for processing, but processing has not yet completed.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/JobSubmitResponse"
+        "400":
+          description: The server could not understand the request due to invalid syntax.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ProblemDetails"
+        "401":
+          description: Access is unauthorized.
+        "403":
+          description: Access is forbidden.
+      tags:
+        - Query
+      security:
+        - OAuth2Auth:
+            - api://sdr-api/level-3
+  /api/query/v{version}/individual-consumption-generation/{jobId}:
+    get:
+      operationId: DS01_getIndividualConsumptionJobStatus
+      summary: Get individual consumption job status
+      description: |-
+        Poll the status of an individual consumption query job.
+
+        Returns the current job status. When status is "complete", response includes
+        the actual dataset results with pagination. When status is "pending",
+        client should continue polling. When status is "failed", response includes error
+        details via standard ProblemDetails. Returns 410 Gone with job metadata if the
+        query results have been purged after retention period (job record still exists).
+        Returns 404 Not Found if the job record itself has been purged.
+      parameters:
+        - name: version
+          in: path
+          required: true
+          description: API version.
+          schema:
+            $ref: "#/components/schemas/ApiMajorVersion"
+        - name: jobId
+          in: path
+          required: true
+          description: Unique job identifier returned by submit operation.
+          schema:
+            type: string
+        - $ref: "#/components/parameters/PaginationParams.offset"
+        - $ref: "#/components/parameters/PaginationParams.limit"
+      responses:
+        "200":
+          description: The request has succeeded.
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - items
+                  - pagination
+                properties:
+                  items:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/IndividualConsumptionRecord"
+                    description: The data records for the current page.
+                  pagination:
+                    allOf:
+                      - $ref: "#/components/schemas/PaginationMetadata"
+                    description: Pagination metadata for this page.
+                  meta:
+                    allOf:
+                      - $ref: "#/components/schemas/ResponseMetadata"
+                    description: Request metadata providing context about the response.
+                  links:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/Link"
+                    description: HATEOAS links for navigation.
+                description: Paginated response for dataset queries containing items and pagination metadata only.
+        "202":
+          description: The request has been accepted for processing, but processing has not yet completed.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/JobPendingResponse"
+        "401":
+          description: Access is unauthorized.
+        "403":
+          description: Access is forbidden.
+        "404":
+          description: The server cannot find the requested resource.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ProblemDetails"
+        "410":
+          description: Client error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/JobGoneResponse"
+        "500":
+          description: Server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ProblemDetails"
+      tags:
+        - Query
+      security:
+        - OAuth2Auth:
+            - api://sdr-api/level-3
+  /api/query/v{version}/individual-consumption-generation/{jobId}/download:
+    get:
+      operationId: DS01_downloadIndividualConsumptionJobResults
+      summary: Download individual consumption job results
+      description: |-
+        Download complete individual consumption query results.
+
+        Streams the full result set for a completed job without pagination.
+        Returns 404 if job not found, 410 if results purged, 202 if still processing.
+      parameters:
+        - name: version
+          in: path
+          required: true
+          description: API version.
+          schema:
+            $ref: "#/components/schemas/ApiMajorVersion"
+        - name: jobId
+          in: path
+          required: true
+          description: Unique job identifier returned by submit operation.
+          schema:
+            type: string
+        - $ref: "#/components/parameters/DownloadParams"
+      responses:
+        "200":
+          description: The request has succeeded.
+          headers:
+            Content-Disposition:
+              required: true
+              schema:
+                type: string
+          content:
+            text/csv:
+              schema:
+                type: string
+                format: binary
+            application/x-ndjson:
+              schema:
+                type: string
+                format: binary
+        "202":
+          description: The request has been accepted for processing, but processing has not yet completed.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/JobPendingResponse"
+        "400":
+          description: The server could not understand the request due to invalid syntax.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ProblemDetails"
+        "401":
+          description: Access is unauthorized.
+        "403":
+          description: Access is forbidden.
+        "404":
+          description: The server cannot find the requested resource.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ProblemDetails"
+        "410":
+          description: Client error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/JobGoneResponse"
+      tags:
+        - Query
+      security:
+        - OAuth2Auth:
+            - api://sdr-api/level-3
+  /api/query/v{version}/number-of-meters-in-a-geographic-area:
+    get:
+      operationId: DS19_getNumberOfMetersByGeographicAreaDaily
+      summary: Number of meters in a geographic area
+      parameters:
+        - name: version
+          in: path
+          required: true
+          description: API version.
+          schema:
+            $ref: "#/components/schemas/ApiMajorVersion"
+        - $ref: "#/components/parameters/PaginationParams.offset"
+        - $ref: "#/components/parameters/PaginationParams.limit"
+        - $ref: "#/components/parameters/PostcodeOutcodesParams"
+        - $ref: "#/components/parameters/MeterTypesParams"
+        - $ref: "#/components/parameters/Ds19EnergyDirectionParams"
+        - $ref: "#/components/parameters/DomesticPremiseIndicatorsParams"
+      responses:
+        "200":
+          description: The request has succeeded.
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - items
+                  - pagination
+                properties:
+                  items:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/GeographicMeterCountDailyRecord"
+                    description: The data records for the current page.
+                  pagination:
+                    allOf:
+                      - $ref: "#/components/schemas/PaginationMetadata"
+                    description: Pagination metadata for this page.
+                  meta:
+                    allOf:
+                      - $ref: "#/components/schemas/ResponseMetadata"
+                    description: Request metadata providing context about the response.
+                  links:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/Link"
+                    description: HATEOAS links for navigation.
+                description: Paginated response for dataset queries containing items and pagination metadata only.
+        "400":
+          description: The server could not understand the request due to invalid syntax.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ProblemDetails"
+        "401":
+          description: Access is unauthorized.
+        "403":
+          description: Access is forbidden.
+      tags:
+        - Query
+      security:
+        - OAuth2Auth:
+            - api://sdr-api/level-1
+  /api/query/v{version}/number-of-meters-in-a-geographic-area/download:
+    get:
+      operationId: DS19_downloadNumberOfMetersByGeographicAreaDaily
+      summary: Number of meters in a geographic area -Download
+      description: |-
+        Download the complete daily DS19 result as a streaming CSV file.
+        Accepts the same filters as the paginated endpoint.
+      parameters:
+        - name: version
+          in: path
+          required: true
+          description: API version.
+          schema:
+            $ref: "#/components/schemas/ApiMajorVersion"
+        - $ref: "#/components/parameters/PostcodeOutcodesParams"
+        - $ref: "#/components/parameters/MeterTypesParams"
+        - $ref: "#/components/parameters/Ds19EnergyDirectionParams"
+        - $ref: "#/components/parameters/DomesticPremiseIndicatorsParams"
+      responses:
+        "200":
+          description: The request has succeeded.
+          headers:
+            Content-Disposition:
+              required: true
+              schema:
+                type: string
+          content:
+            text/csv:
+              schema:
+                type: string
+                format: binary
+        "400":
+          description: The server could not understand the request due to invalid syntax.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ProblemDetails"
+        "401":
+          description: Access is unauthorized.
+        "403":
+          description: Access is forbidden.
+        "404":
+          description: The server cannot find the requested resource.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ProblemDetails"
+        "503":
+          description: Service unavailable.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ProblemDetails"
+        "504":
+          description: Server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ProblemDetails"
+      tags:
+        - Query
+      security:
+        - OAuth2Auth:
+            - api://sdr-api/level-1
+  /api/query/v{version}/number-of-meters-in-a-gsp-group:
+    get:
+      operationId: DS18_getDs18Daily
+      summary: Number of meters in a GSP group
+      description: |-
+        Query daily MPAN counts grouped by GSP group, energy direction,
+        domestic-premise indicator, and meter type.
+      parameters:
+        - name: version
+          in: path
+          required: true
+          description: API version.
+          schema:
+            $ref: "#/components/schemas/ApiMajorVersion"
+        - $ref: "#/components/parameters/PaginationParams.offset"
+        - $ref: "#/components/parameters/PaginationParams.limit"
+        - $ref: "#/components/parameters/GspGroupIdParams"
+        - $ref: "#/components/parameters/MeterTypesParams"
+        - $ref: "#/components/parameters/Ds18EnergyDirectionParams"
+        - $ref: "#/components/parameters/DomesticPremiseIndicatorsParams"
+      responses:
+        "200":
+          description: The request has succeeded.
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - items
+                  - pagination
+                properties:
+                  items:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/Ds18DailyRecord"
+                    description: The data records for the current page.
+                  pagination:
+                    allOf:
+                      - $ref: "#/components/schemas/PaginationMetadata"
+                    description: Pagination metadata for this page.
+                  meta:
+                    allOf:
+                      - $ref: "#/components/schemas/ResponseMetadata"
+                    description: Request metadata providing context about the response.
+                  links:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/Link"
+                    description: HATEOAS links for navigation.
+                description: Paginated response for dataset queries containing items and pagination metadata only.
+        "400":
+          description: The server could not understand the request due to invalid syntax.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ProblemDetails"
+        "401":
+          description: Access is unauthorized.
+        "403":
+          description: Access is forbidden.
+        "404":
+          description: The server cannot find the requested resource.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ProblemDetails"
+        "503":
+          description: Service unavailable.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ProblemDetails"
+        "504":
+          description: Server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ProblemDetails"
+      tags:
+        - Query
+      security:
+        - OAuth2Auth:
+            - api://sdr-api/level-1
+  /api/query/v{version}/number-of-meters-in-a-gsp-group/download:
+    get:
+      operationId: DS18_downloadDs18Daily
+      summary: Number of meters in a GSP group-Download
+      description: |-
+        Download the complete daily DS18 result as a streaming CSV file.
+        Accepts the same filter parameters as the paginated endpoint without pagination.
+      parameters:
+        - name: version
+          in: path
+          required: true
+          description: API version.
+          schema:
+            $ref: "#/components/schemas/ApiMajorVersion"
+        - $ref: "#/components/parameters/GspGroupIdParams"
+        - $ref: "#/components/parameters/MeterTypesParams"
+        - $ref: "#/components/parameters/Ds18EnergyDirectionParams"
+        - $ref: "#/components/parameters/DomesticPremiseIndicatorsParams"
+      responses:
+        "200":
+          description: The request has succeeded.
+          headers:
+            Content-Disposition:
+              required: true
+              schema:
+                type: string
+          content:
+            text/csv:
+              schema:
+                type: string
+                format: binary
+        "400":
+          description: The server could not understand the request due to invalid syntax.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ProblemDetails"
+        "401":
+          description: Access is unauthorized.
+        "403":
+          description: Access is forbidden.
+        "404":
+          description: The server cannot find the requested resource.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ProblemDetails"
+        "503":
+          description: Service unavailable.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ProblemDetails"
+        "504":
+          description: Server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ProblemDetails"
+      tags:
+        - Query
+      security:
+        - OAuth2Auth:
+            - api://sdr-api/level-1
+  /api/query/v{version}/profile-class-consumption-and-generation/daily:
+    get:
+      operationId: DS24_getDailyProfileClassConsumption
+      summary: Daily profile class consumption
+      parameters:
+        - name: version
+          in: path
+          required: true
+          schema:
+            $ref: "#/components/schemas/ApiMajorVersion"
+        - $ref: "#/components/parameters/DateParams.startDate"
+        - $ref: "#/components/parameters/DateParams.endDate"
+        - $ref: "#/components/parameters/ProfileClassCodeParams"
+        - $ref: "#/components/parameters/GspGroupIdParams"
+        - $ref: "#/components/parameters/PostcodeOutcodesParams"
+        - $ref: "#/components/parameters/QualityIndicatorParams"
+        - $ref: "#/components/parameters/PaginationParams.offset"
+        - $ref: "#/components/parameters/PaginationParams.limit"
+      responses:
+        "200":
+          description: The request has succeeded.
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - items
+                  - pagination
+                properties:
+                  items:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/Ds24DailyProfileClassConsumptionRecord"
+                    description: The data records for the current page.
+                  pagination:
+                    allOf:
+                      - $ref: "#/components/schemas/PaginationMetadata"
+                    description: Pagination metadata for this page.
+                  meta:
+                    allOf:
+                      - $ref: "#/components/schemas/ResponseMetadata"
+                    description: Request metadata providing context about the response.
+                  links:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/Link"
+                    description: HATEOAS links for navigation.
+                description: Paginated response for dataset queries containing items and pagination metadata only.
+        "400":
+          description: The server could not understand the request due to invalid syntax.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ProblemDetails"
+        "401":
+          description: Access is unauthorized.
+        "403":
+          description: Access is forbidden.
+        "503":
+          description: Service unavailable.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ProblemDetails"
+        "504":
+          description: Server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ProblemDetails"
+      tags:
+        - Query
+      security:
+        - OAuth2Auth:
+            - api://sdr-api/level-2
+  /api/query/v{version}/profile-class-consumption-and-generation/daily/download:
+    post:
+      operationId: DS24_submitDailyProfileClassConsumptionDownload
+      summary: Submit daily profile class consumption download
+      description: Submit an asynchronous daily DS24 export.
+      parameters:
+        - name: version
+          in: path
+          required: true
+          schema:
+            $ref: "#/components/schemas/ApiMajorVersion"
+        - $ref: "#/components/parameters/DateParams.startDate"
+        - $ref: "#/components/parameters/DateParams.endDate"
+        - $ref: "#/components/parameters/ProfileClassCodeParams"
+        - $ref: "#/components/parameters/GspGroupIdParams"
+        - $ref: "#/components/parameters/PostcodeOutcodesParams"
+        - $ref: "#/components/parameters/QualityIndicatorParams"
+        - $ref: "#/components/parameters/Ds24DailyMonthlyDownloadParams.limit"
+      responses:
+        "202":
+          description: The request has been accepted for processing, but processing has not yet completed.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/JobSubmitResponse"
+        "400":
+          description: The server could not understand the request due to invalid syntax.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ProblemDetails"
+        "401":
+          description: Access is unauthorized.
+        "403":
+          description: Access is forbidden.
+      tags:
+        - Query
+      security:
+        - OAuth2Auth:
+            - api://sdr-api/level-2
+    get:
+      operationId: DS24_downloadDailyProfileClassConsumption
+      summary: Daily profile class consumption - Download
+      description: Download the complete daily DS24 result as a streaming CSV file.
+      parameters:
+        - name: version
+          in: path
+          required: true
+          schema:
+            $ref: "#/components/schemas/ApiMajorVersion"
+        - $ref: "#/components/parameters/DateParams.startDate"
+        - $ref: "#/components/parameters/DateParams.endDate"
+        - $ref: "#/components/parameters/ProfileClassCodeParams"
+        - $ref: "#/components/parameters/GspGroupIdParams"
+        - $ref: "#/components/parameters/PostcodeOutcodesParams"
+        - $ref: "#/components/parameters/QualityIndicatorParams"
+        - $ref: "#/components/parameters/PaginationParams.offset"
+        - $ref: "#/components/parameters/PaginationParams.limit"
+      responses:
+        "200":
+          description: The request has succeeded.
+          headers:
+            Content-Disposition:
+              required: true
+              schema:
+                type: string
+          content:
+            text/csv:
+              schema:
+                type: string
+                format: binary
+        "400":
+          description: The server could not understand the request due to invalid syntax.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ProblemDetails"
+        "401":
+          description: Access is unauthorized.
+        "403":
+          description: Access is forbidden.
+        "503":
+          description: Service unavailable.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ProblemDetails"
+        "504":
+          description: Server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ProblemDetails"
+      tags:
+        - Query
+      security:
+        - OAuth2Auth:
+            - api://sdr-api/level-2
+  /api/query/v{version}/profile-class-consumption-and-generation/half-hourly:
+    get:
+      operationId: DS24_getHalfHourlyProfileClassConsumption
+      summary: Half-hourly profile class consumption
+      parameters:
+        - name: version
+          in: path
+          required: true
+          schema:
+            $ref: "#/components/schemas/ApiMajorVersion"
+        - $ref: "#/components/parameters/DateParams.startDate"
+        - $ref: "#/components/parameters/DateParams.endDate"
+        - $ref: "#/components/parameters/ProfileClassCodeParams"
+        - $ref: "#/components/parameters/GspGroupIdParams"
+        - $ref: "#/components/parameters/PostcodeOutcodesParams"
+        - $ref: "#/components/parameters/QualityIndicatorParams"
+        - $ref: "#/components/parameters/PaginationParams.offset"
+        - $ref: "#/components/parameters/PaginationParams.limit"
+        - $ref: "#/components/parameters/SettlementPeriodBounds.settlementPeriodStart"
+        - $ref: "#/components/parameters/SettlementPeriodBounds.settlementPeriodEnd"
+      responses:
+        "200":
+          description: The request has succeeded.
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - items
+                  - pagination
+                properties:
+                  items:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/Ds24HalfHourlyProfileClassConsumptionRecord"
+                    description: The data records for the current page.
+                  pagination:
+                    allOf:
+                      - $ref: "#/components/schemas/PaginationMetadata"
+                    description: Pagination metadata for this page.
+                  meta:
+                    allOf:
+                      - $ref: "#/components/schemas/ResponseMetadata"
+                    description: Request metadata providing context about the response.
+                  links:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/Link"
+                    description: HATEOAS links for navigation.
+                description: Paginated response for dataset queries containing items and pagination metadata only.
+        "400":
+          description: The server could not understand the request due to invalid syntax.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ProblemDetails"
+        "401":
+          description: Access is unauthorized.
+        "403":
+          description: Access is forbidden.
+        "503":
+          description: Service unavailable.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ProblemDetails"
+        "504":
+          description: Server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ProblemDetails"
+      tags:
+        - Query
+      security:
+        - OAuth2Auth:
+            - api://sdr-api/level-2
+  /api/query/v{version}/profile-class-consumption-and-generation/half-hourly/download:
+    post:
+      operationId: DS24_submitHalfHourlyProfileClassConsumptionDownload
+      summary: Submit half-hourly profile class consumption download
+      description: Submit an asynchronous half-hourly DS24 export.
+      parameters:
+        - name: version
+          in: path
+          required: true
+          schema:
+            $ref: "#/components/schemas/ApiMajorVersion"
+        - $ref: "#/components/parameters/DateParams.startDate"
+        - $ref: "#/components/parameters/DateParams.endDate"
+        - $ref: "#/components/parameters/ProfileClassCodeParams"
+        - $ref: "#/components/parameters/GspGroupIdParams"
+        - $ref: "#/components/parameters/PostcodeOutcodesParams"
+        - $ref: "#/components/parameters/QualityIndicatorParams"
+        - $ref: "#/components/parameters/SettlementPeriodBounds.settlementPeriodStart"
+        - $ref: "#/components/parameters/SettlementPeriodBounds.settlementPeriodEnd"
+        - $ref: "#/components/parameters/Ds24HalfHourlyDownloadParams.limit"
+      responses:
+        "202":
+          description: The request has been accepted for processing, but processing has not yet completed.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/JobSubmitResponse"
+        "400":
+          description: The server could not understand the request due to invalid syntax.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ProblemDetails"
+        "401":
+          description: Access is unauthorized.
+        "403":
+          description: Access is forbidden.
+      tags:
+        - Query
+      security:
+        - OAuth2Auth:
+            - api://sdr-api/level-2
+    get:
+      operationId: DS24_downloadHalfHourlyProfileClassConsumption
+      summary: Half-hourly profile class consumption - Download
+      description: Download the complete half-hourly DS24 result as a streaming CSV file.
+      parameters:
+        - name: version
+          in: path
+          required: true
+          schema:
+            $ref: "#/components/schemas/ApiMajorVersion"
+        - $ref: "#/components/parameters/DateParams.startDate"
+        - $ref: "#/components/parameters/DateParams.endDate"
+        - $ref: "#/components/parameters/ProfileClassCodeParams"
+        - $ref: "#/components/parameters/GspGroupIdParams"
+        - $ref: "#/components/parameters/PostcodeOutcodesParams"
+        - $ref: "#/components/parameters/QualityIndicatorParams"
+        - $ref: "#/components/parameters/PaginationParams.offset"
+        - $ref: "#/components/parameters/PaginationParams.limit"
+        - $ref: "#/components/parameters/SettlementPeriodBounds.settlementPeriodStart"
+        - $ref: "#/components/parameters/SettlementPeriodBounds.settlementPeriodEnd"
+      responses:
+        "200":
+          description: The request has succeeded.
+          headers:
+            Content-Disposition:
+              required: true
+              schema:
+                type: string
+          content:
+            text/csv:
+              schema:
+                type: string
+                format: binary
+        "400":
+          description: The server could not understand the request due to invalid syntax.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ProblemDetails"
+        "401":
+          description: Access is unauthorized.
+        "403":
+          description: Access is forbidden.
+        "503":
+          description: Service unavailable.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ProblemDetails"
+        "504":
+          description: Server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ProblemDetails"
+      tags:
+        - Query
+      security:
+        - OAuth2Auth:
+            - api://sdr-api/level-2
+  /api/query/v{version}/profile-class-consumption-and-generation/monthly:
+    get:
+      operationId: DS24_getMonthlyProfileClassConsumption
+      summary: Monthly profile class consumption
+      parameters:
+        - name: version
+          in: path
+          required: true
+          schema:
+            $ref: "#/components/schemas/ApiMajorVersion"
+        - $ref: "#/components/parameters/DateParams.startDate"
+        - $ref: "#/components/parameters/DateParams.endDate"
+        - $ref: "#/components/parameters/ProfileClassCodeParams"
+        - $ref: "#/components/parameters/GspGroupIdParams"
+        - $ref: "#/components/parameters/PostcodeOutcodesParams"
+        - $ref: "#/components/parameters/QualityIndicatorParams"
+        - $ref: "#/components/parameters/PaginationParams.offset"
+        - $ref: "#/components/parameters/PaginationParams.limit"
+      responses:
+        "200":
+          description: The request has succeeded.
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - items
+                  - pagination
+                properties:
+                  items:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/Ds24MonthlyProfileClassConsumptionRecord"
+                    description: The data records for the current page.
+                  pagination:
+                    allOf:
+                      - $ref: "#/components/schemas/PaginationMetadata"
+                    description: Pagination metadata for this page.
+                  meta:
+                    allOf:
+                      - $ref: "#/components/schemas/ResponseMetadata"
+                    description: Request metadata providing context about the response.
+                  links:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/Link"
+                    description: HATEOAS links for navigation.
+                description: Paginated response for dataset queries containing items and pagination metadata only.
+        "400":
+          description: The server could not understand the request due to invalid syntax.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ProblemDetails"
+        "401":
+          description: Access is unauthorized.
+        "403":
+          description: Access is forbidden.
+        "503":
+          description: Service unavailable.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ProblemDetails"
+        "504":
+          description: Server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ProblemDetails"
+      tags:
+        - Query
+      security:
+        - OAuth2Auth:
+            - api://sdr-api/level-2
+  /api/query/v{version}/profile-class-consumption-and-generation/monthly/download:
+    post:
+      operationId: DS24_submitMonthlyProfileClassConsumptionDownload
+      summary: Submit monthly profile class consumption download
+      description: Submit an asynchronous monthly DS24 export.
+      parameters:
+        - name: version
+          in: path
+          required: true
+          schema:
+            $ref: "#/components/schemas/ApiMajorVersion"
+        - $ref: "#/components/parameters/DateParams.startDate"
+        - $ref: "#/components/parameters/DateParams.endDate"
+        - $ref: "#/components/parameters/ProfileClassCodeParams"
+        - $ref: "#/components/parameters/GspGroupIdParams"
+        - $ref: "#/components/parameters/PostcodeOutcodesParams"
+        - $ref: "#/components/parameters/QualityIndicatorParams"
+        - $ref: "#/components/parameters/Ds24DailyMonthlyDownloadParams.limit"
+      responses:
+        "202":
+          description: The request has been accepted for processing, but processing has not yet completed.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/JobSubmitResponse"
+        "400":
+          description: The server could not understand the request due to invalid syntax.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ProblemDetails"
+        "401":
+          description: Access is unauthorized.
+        "403":
+          description: Access is forbidden.
+      tags:
+        - Query
+      security:
+        - OAuth2Auth:
+            - api://sdr-api/level-2
+    get:
+      operationId: DS24_downloadMonthlyProfileClassConsumption
+      summary: Monthly profile class consumption - Download
+      description: Download the complete monthly DS24 result as a streaming CSV file.
+      parameters:
+        - name: version
+          in: path
+          required: true
+          schema:
+            $ref: "#/components/schemas/ApiMajorVersion"
+        - $ref: "#/components/parameters/DateParams.startDate"
+        - $ref: "#/components/parameters/DateParams.endDate"
+        - $ref: "#/components/parameters/ProfileClassCodeParams"
+        - $ref: "#/components/parameters/GspGroupIdParams"
+        - $ref: "#/components/parameters/PostcodeOutcodesParams"
+        - $ref: "#/components/parameters/QualityIndicatorParams"
+        - $ref: "#/components/parameters/PaginationParams.offset"
+        - $ref: "#/components/parameters/PaginationParams.limit"
+      responses:
+        "200":
+          description: The request has succeeded.
+          headers:
+            Content-Disposition:
+              required: true
+              schema:
+                type: string
+          content:
+            text/csv:
+              schema:
+                type: string
+                format: binary
+        "400":
+          description: The server could not understand the request due to invalid syntax.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ProblemDetails"
+        "401":
+          description: Access is unauthorized.
+        "403":
+          description: Access is forbidden.
+        "503":
+          description: Service unavailable.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ProblemDetails"
+        "504":
+          description: Server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ProblemDetails"
+      tags:
+        - Query
+      security:
+        - OAuth2Auth:
+            - api://sdr-api/level-2
+  /api/query/v{version}/regional-consumption-and-generation/daily:
+    get:
+      operationId: DS23_getDailyRegionalConsumption
+      summary: Daily regional consumption and generation
+      parameters:
+        - name: version
+          in: path
+          required: true
+          schema:
+            $ref: "#/components/schemas/ApiMajorVersion"
+        - $ref: "#/components/parameters/Ds23DateRangeParams.startDate"
+        - $ref: "#/components/parameters/Ds23DateRangeParams.endDate"
+        - $ref: "#/components/parameters/Ds23OutcodesParams"
+        - $ref: "#/components/parameters/Ds23FilterParams.qualityIndicator"
+        - $ref: "#/components/parameters/Ds23FilterParams.energyDirection"
+        - $ref: "#/components/parameters/Ds23RegionalConsumptionQuery.offset"
+        - $ref: "#/components/parameters/Ds23RegionalConsumptionQuery.limit"
+      responses:
+        "200":
+          description: The request has succeeded.
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - items
+                  - pagination
+                properties:
+                  items:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/Ds23DailyRegionalConsumptionRecord"
+                    description: The data records for the current page.
+                  pagination:
+                    allOf:
+                      - $ref: "#/components/schemas/PaginationMetadata"
+                    description: Pagination metadata for this page.
+                  meta:
+                    allOf:
+                      - $ref: "#/components/schemas/ResponseMetadata"
+                    description: Request metadata providing context about the response.
+                  links:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/Link"
+                    description: HATEOAS links for navigation.
+                description: Paginated response for dataset queries containing items and pagination metadata only.
+        "400":
+          description: The server could not understand the request due to invalid syntax.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ProblemDetails"
+        "401":
+          description: Access is unauthorized.
+        "403":
+          description: Access is forbidden.
+        "503":
+          description: Service unavailable.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ProblemDetails"
+        "504":
+          description: Server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ProblemDetails"
+      tags:
+        - Query
+      security:
+        - OAuth2Auth:
+            - api://sdr-api/level-2
+  /api/query/v{version}/regional-consumption-and-generation/daily/download:
+    post:
+      operationId: DS23_submitDailyRegionalConsumptionDownload
+      summary: Submit daily regional consumption and generation download
+      description: Submit an asynchronous daily DS23 export.
+      parameters:
+        - name: version
+          in: path
+          required: true
+          schema:
+            $ref: "#/components/schemas/ApiMajorVersion"
+        - $ref: "#/components/parameters/Ds23DateRangeParams.startDate"
+        - $ref: "#/components/parameters/Ds23DateRangeParams.endDate"
+        - $ref: "#/components/parameters/Ds23OutcodesParams"
+        - $ref: "#/components/parameters/Ds23FilterParams.qualityIndicator"
+        - $ref: "#/components/parameters/Ds23FilterParams.energyDirection"
+        - $ref: "#/components/parameters/Ds23DailyMonthlyDownloadParams.limit"
+      responses:
+        "202":
+          description: The request has been accepted for processing, but processing has not yet completed.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/JobSubmitResponse"
+        "400":
+          description: The server could not understand the request due to invalid syntax.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ProblemDetails"
+        "401":
+          description: Access is unauthorized.
+        "403":
+          description: Access is forbidden.
+      tags:
+        - Query
+      security:
+        - OAuth2Auth:
+            - api://sdr-api/level-2
+    get:
+      operationId: DS23_downloadDailyRegionalConsumption
+      summary: Daily regional consumption and generation - Download
+      description: Stream the daily DS23 result as CSV using workbook column labels.
+      parameters:
+        - name: version
+          in: path
+          required: true
+          schema:
+            $ref: "#/components/schemas/ApiMajorVersion"
+        - $ref: "#/components/parameters/Ds23DateRangeParams.startDate"
+        - $ref: "#/components/parameters/Ds23DateRangeParams.endDate"
+        - $ref: "#/components/parameters/Ds23OutcodesParams"
+        - $ref: "#/components/parameters/Ds23FilterParams.qualityIndicator"
+        - $ref: "#/components/parameters/Ds23FilterParams.energyDirection"
+        - $ref: "#/components/parameters/Ds23RegionalConsumptionQuery.offset"
+        - $ref: "#/components/parameters/Ds23RegionalConsumptionQuery.limit"
+      responses:
+        "200":
+          description: The request has succeeded.
+          headers:
+            Content-Disposition:
+              required: true
+              schema:
+                type: string
+          content:
+            text/csv:
+              schema:
+                type: string
+                format: binary
+        "400":
+          description: The server could not understand the request due to invalid syntax.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ProblemDetails"
+        "401":
+          description: Access is unauthorized.
+        "403":
+          description: Access is forbidden.
+        "503":
+          description: Service unavailable.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ProblemDetails"
+        "504":
+          description: Server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ProblemDetails"
+      tags:
+        - Query
+      security:
+        - OAuth2Auth:
+            - api://sdr-api/level-2
+  /api/query/v{version}/regional-consumption-and-generation/half-hourly:
+    get:
+      operationId: DS23_getHalfHourlyRegionalConsumption
+      summary: Half-hourly regional consumption and generation
+      parameters:
+        - name: version
+          in: path
+          required: true
+          schema:
+            $ref: "#/components/schemas/ApiMajorVersion"
+        - $ref: "#/components/parameters/Ds23DateRangeParams.startDate"
+        - $ref: "#/components/parameters/Ds23DateRangeParams.endDate"
+        - $ref: "#/components/parameters/Ds23OutcodesParams"
+        - $ref: "#/components/parameters/Ds23FilterParams.qualityIndicator"
+        - $ref: "#/components/parameters/Ds23FilterParams.energyDirection"
+        - $ref: "#/components/parameters/Ds23RegionalConsumptionQuery.offset"
+        - $ref: "#/components/parameters/Ds23RegionalConsumptionQuery.limit"
+        - $ref: "#/components/parameters/Ds23SettlementPeriodBounds.settlementPeriodStart"
+        - $ref: "#/components/parameters/Ds23SettlementPeriodBounds.settlementPeriodEnd"
+      responses:
+        "200":
+          description: The request has succeeded.
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - items
+                  - pagination
+                properties:
+                  items:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/Ds23HalfHourlyRegionalConsumptionRecord"
+                    description: The data records for the current page.
+                  pagination:
+                    allOf:
+                      - $ref: "#/components/schemas/PaginationMetadata"
+                    description: Pagination metadata for this page.
+                  meta:
+                    allOf:
+                      - $ref: "#/components/schemas/ResponseMetadata"
+                    description: Request metadata providing context about the response.
+                  links:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/Link"
+                    description: HATEOAS links for navigation.
+                description: Paginated response for dataset queries containing items and pagination metadata only.
+        "400":
+          description: The server could not understand the request due to invalid syntax.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ProblemDetails"
+        "401":
+          description: Access is unauthorized.
+        "403":
+          description: Access is forbidden.
+        "503":
+          description: Service unavailable.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ProblemDetails"
+        "504":
+          description: Server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ProblemDetails"
+      tags:
+        - Query
+      security:
+        - OAuth2Auth:
+            - api://sdr-api/level-2
+  /api/query/v{version}/regional-consumption-and-generation/half-hourly/download:
+    post:
+      operationId: DS23_submitHalfHourlyRegionalConsumptionDownload
+      summary: Submit half-hourly regional consumption and generation download
+      description: Submit an asynchronous half-hourly DS23 export.
+      parameters:
+        - name: version
+          in: path
+          required: true
+          schema:
+            $ref: "#/components/schemas/ApiMajorVersion"
+        - $ref: "#/components/parameters/Ds23DateRangeParams.startDate"
+        - $ref: "#/components/parameters/Ds23DateRangeParams.endDate"
+        - $ref: "#/components/parameters/Ds23OutcodesParams"
+        - $ref: "#/components/parameters/Ds23FilterParams.qualityIndicator"
+        - $ref: "#/components/parameters/Ds23FilterParams.energyDirection"
+        - $ref: "#/components/parameters/Ds23SettlementPeriodBounds.settlementPeriodStart"
+        - $ref: "#/components/parameters/Ds23SettlementPeriodBounds.settlementPeriodEnd"
+        - $ref: "#/components/parameters/Ds23HalfHourlyDownloadParams.limit"
+      responses:
+        "202":
+          description: The request has been accepted for processing, but processing has not yet completed.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/JobSubmitResponse"
+        "400":
+          description: The server could not understand the request due to invalid syntax.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ProblemDetails"
+        "401":
+          description: Access is unauthorized.
+        "403":
+          description: Access is forbidden.
+      tags:
+        - Query
+      security:
+        - OAuth2Auth:
+            - api://sdr-api/level-2
+    get:
+      operationId: DS23_downloadHalfHourlyRegionalConsumption
+      summary: Half-hourly regional consumption and generation - Download
+      description: Stream the half-hourly DS23 result as CSV using workbook column labels.
+      parameters:
+        - name: version
+          in: path
+          required: true
+          schema:
+            $ref: "#/components/schemas/ApiMajorVersion"
+        - $ref: "#/components/parameters/Ds23DateRangeParams.startDate"
+        - $ref: "#/components/parameters/Ds23DateRangeParams.endDate"
+        - $ref: "#/components/parameters/Ds23OutcodesParams"
+        - $ref: "#/components/parameters/Ds23FilterParams.qualityIndicator"
+        - $ref: "#/components/parameters/Ds23FilterParams.energyDirection"
+        - $ref: "#/components/parameters/Ds23RegionalConsumptionQuery.offset"
+        - $ref: "#/components/parameters/Ds23RegionalConsumptionQuery.limit"
+        - $ref: "#/components/parameters/Ds23SettlementPeriodBounds.settlementPeriodStart"
+        - $ref: "#/components/parameters/Ds23SettlementPeriodBounds.settlementPeriodEnd"
+      responses:
+        "200":
+          description: The request has succeeded.
+          headers:
+            Content-Disposition:
+              required: true
+              schema:
+                type: string
+          content:
+            text/csv:
+              schema:
+                type: string
+                format: binary
+        "400":
+          description: The server could not understand the request due to invalid syntax.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ProblemDetails"
+        "401":
+          description: Access is unauthorized.
+        "403":
+          description: Access is forbidden.
+        "503":
+          description: Service unavailable.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ProblemDetails"
+        "504":
+          description: Server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ProblemDetails"
+      tags:
+        - Query
+      security:
+        - OAuth2Auth:
+            - api://sdr-api/level-2
+  /api/query/v{version}/regional-consumption-and-generation/monthly:
+    get:
+      operationId: DS23_getMonthlyRegionalConsumption
+      summary: Monthly regional consumption and generation
+      parameters:
+        - name: version
+          in: path
+          required: true
+          schema:
+            $ref: "#/components/schemas/ApiMajorVersion"
+        - $ref: "#/components/parameters/Ds23DateRangeParams.startDate"
+        - $ref: "#/components/parameters/Ds23DateRangeParams.endDate"
+        - $ref: "#/components/parameters/Ds23OutcodesParams"
+        - $ref: "#/components/parameters/Ds23FilterParams.qualityIndicator"
+        - $ref: "#/components/parameters/Ds23FilterParams.energyDirection"
+        - $ref: "#/components/parameters/Ds23RegionalConsumptionQuery.offset"
+        - $ref: "#/components/parameters/Ds23RegionalConsumptionQuery.limit"
+      responses:
+        "200":
+          description: The request has succeeded.
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - items
+                  - pagination
+                properties:
+                  items:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/Ds23MonthlyRegionalConsumptionRecord"
+                    description: The data records for the current page.
+                  pagination:
+                    allOf:
+                      - $ref: "#/components/schemas/PaginationMetadata"
+                    description: Pagination metadata for this page.
+                  meta:
+                    allOf:
+                      - $ref: "#/components/schemas/ResponseMetadata"
+                    description: Request metadata providing context about the response.
+                  links:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/Link"
+                    description: HATEOAS links for navigation.
+                description: Paginated response for dataset queries containing items and pagination metadata only.
+        "400":
+          description: The server could not understand the request due to invalid syntax.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ProblemDetails"
+        "401":
+          description: Access is unauthorized.
+        "403":
+          description: Access is forbidden.
+        "503":
+          description: Service unavailable.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ProblemDetails"
+        "504":
+          description: Server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ProblemDetails"
+      tags:
+        - Query
+      security:
+        - OAuth2Auth:
+            - api://sdr-api/level-2
+  /api/query/v{version}/regional-consumption-and-generation/monthly/download:
+    post:
+      operationId: DS23_submitMonthlyRegionalConsumptionDownload
+      summary: Submit monthly regional consumption and generation download
+      description: Submit an asynchronous monthly DS23 export.
+      parameters:
+        - name: version
+          in: path
+          required: true
+          schema:
+            $ref: "#/components/schemas/ApiMajorVersion"
+        - $ref: "#/components/parameters/Ds23DateRangeParams.startDate"
+        - $ref: "#/components/parameters/Ds23DateRangeParams.endDate"
+        - $ref: "#/components/parameters/Ds23OutcodesParams"
+        - $ref: "#/components/parameters/Ds23FilterParams.qualityIndicator"
+        - $ref: "#/components/parameters/Ds23FilterParams.energyDirection"
+        - $ref: "#/components/parameters/Ds23DailyMonthlyDownloadParams.limit"
+      responses:
+        "202":
+          description: The request has been accepted for processing, but processing has not yet completed.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/JobSubmitResponse"
+        "400":
+          description: The server could not understand the request due to invalid syntax.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ProblemDetails"
+        "401":
+          description: Access is unauthorized.
+        "403":
+          description: Access is forbidden.
+      tags:
+        - Query
+      security:
+        - OAuth2Auth:
+            - api://sdr-api/level-2
+    get:
+      operationId: DS23_downloadMonthlyRegionalConsumption
+      summary: Monthly regional consumption and generation - Download
+      description: Stream the monthly DS23 result as CSV using workbook column labels.
+      parameters:
+        - name: version
+          in: path
+          required: true
+          schema:
+            $ref: "#/components/schemas/ApiMajorVersion"
+        - $ref: "#/components/parameters/Ds23DateRangeParams.startDate"
+        - $ref: "#/components/parameters/Ds23DateRangeParams.endDate"
+        - $ref: "#/components/parameters/Ds23OutcodesParams"
+        - $ref: "#/components/parameters/Ds23FilterParams.qualityIndicator"
+        - $ref: "#/components/parameters/Ds23FilterParams.energyDirection"
+        - $ref: "#/components/parameters/Ds23RegionalConsumptionQuery.offset"
+        - $ref: "#/components/parameters/Ds23RegionalConsumptionQuery.limit"
+      responses:
+        "200":
+          description: The request has succeeded.
+          headers:
+            Content-Disposition:
+              required: true
+              schema:
+                type: string
+          content:
+            text/csv:
+              schema:
+                type: string
+                format: binary
+        "400":
+          description: The server could not understand the request due to invalid syntax.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ProblemDetails"
+        "401":
+          description: Access is unauthorized.
+        "403":
+          description: Access is forbidden.
+        "503":
+          description: Service unavailable.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ProblemDetails"
+        "504":
+          description: Server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ProblemDetails"
+      tags:
+        - Query
+      security:
+        - OAuth2Auth:
+            - api://sdr-api/level-2
+  /api/query/v{version}/{domain}/{dataset}:
+    get:
+      operationId: QueryRoutes_executeDatasetQuery
+      summary: Execute generic query (deprecated)
+      description: |-
+        DEPRECATED: Execute a generic parameterized query.
+        Use specific dataset query routes instead (e.g., getIndividualConsumption).
+        This route is retained for backward compatibility only.
+      parameters:
+        - name: version
+          in: path
+          required: true
+          description: API version.
+          schema:
+            $ref: "#/components/schemas/ApiMajorVersion"
+        - name: domain
+          in: path
+          required: true
+          description: The dataset domain (e.g. settlement, generation).
+          schema:
+            type: string
+        - name: dataset
+          in: path
+          required: true
+          description: The dataset identifier (e.g. ds14).
+          schema:
+            type: string
+        - name: offset
+          in: query
+          required: false
+          description: Number of rows to skip for pagination.
+          schema:
+            type: integer
+            format: int32
+          explode: false
+        - name: limit
+          in: query
+          required: false
+          description: Maximum number of rows to return (default 100).
+          schema:
+            type: integer
+            format: int32
+          explode: false
+        - name: sortBy
+          in: query
+          required: false
+          description: Field to sort rows by.
+          schema:
+            type: string
+          explode: false
+        - name: sortOrder
+          in: query
+          required: false
+          description: Sort direction — asc or desc (default asc).
+          schema:
+            type: string
+          explode: false
+      responses:
+        "200":
+          description: The request has succeeded.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/QueryResultDto"
+        "400":
+          description: The server could not understand the request due to invalid syntax.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ProblemDetails"
+        "401":
+          description: Access is unauthorized.
+        "403":
+          description: Access is forbidden.
+        "404":
+          description: The server cannot find the requested resource.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ProblemDetails"
+      tags:
+        - Query
+      security:
+        - OAuth2Auth:
+            - api://sdr-api/level-1
+tags:
+  - name: Query
+components:
+  schemas:
+    ApiMajorVersion:
+      type: string
+      pattern: ^[1-9][0-9]*$
+      description: Numeric API major version; route templates supply the v prefix.
+      example: "1"
+    JobSubmitResponse:
+      type: object
+      required:
+        - jobId
+        - pollUrl
+      properties:
+        jobId:
+          type: string
+          description: Unique identifier for this query job.
+        pollUrl:
+          type: string
+          format: uri
+          description: URL to poll for job status updates.
+        estimatedCompletionTime:
+          type: string
+          format: date-time
+          description: Estimated completion time (optional).
+      description: Response when a query job is successfully submitted.
+    ProblemDetails:
+      type: object
+      properties:
+        type:
+          type: string
+          description: A URI reference that identifies the problem type.
+        title:
+          type: string
+          description: A short, human-readable summary of the problem type.
+        status:
+          type: integer
+          format: int32
+          description: The HTTP status code generated by the origin server.
+        detail:
+          type: string
+          description: A human-readable explanation specific to this occurrence of the problem.
+        instance:
+          type: string
+          description: A URI reference that identifies the specific occurrence of the problem.
+      description: RFC 7807 Problem Details for HTTP APIs error response.
+    AggregatedAnnualEstimateJobRequest:
+      type: object
+      required:
+        - mpanCores
+      properties:
+        mpanCores:
+          allOf:
+            - $ref: "#/components/schemas/MpanCoreCsv"
+          description: Comma-separated list of at least six distinct 13-digit MPAN Cores.
+      description: Request body for an asynchronous DS20 export.
+    MpanCoreCsv:
+      type: string
+      description: A comma-separated list of MPAN Cores used by aggregate dataset query contracts.
+    AggregatedAnnualEstimateJobStatus:
+      type: object
+      required:
+        - jobId
+        - status
+      properties:
+        jobId:
+          type: string
+          description: The query job identifier.
+        status:
+          type: string
+          description: Current query job state.
+        output:
+          type: object
+          additionalProperties: {}
+          description: Export metadata when the job has completed.
+        error:
+          type: string
+          description: Error details when the job has failed.
+        downloadUrl:
+          type: string
+          description: Relative URL for downloading completed results.
+      description: Public status returned while an asynchronous DS20 export is running.
+    DownloadFormat:
+      type: string
+      enum:
+        - csv
+        - jsonl
+      description: Output format for streaming downloads.
+    AggregatedAnnualEstimateResponse:
+      type: object
+      required:
+        - items
+      properties:
+        items:
+          type: array
+          items:
+            $ref: "#/components/schemas/AggregatedAnnualEstimateRecord"
+          description: The aggregate result, empty when fewer than six MPANs contribute.
+      description: Response envelope returned by the synchronous DS20 endpoint.
+    AggregatedAnnualEstimateRecord:
+      type: object
+      required:
+        - mpan_cores
+        - estimated_annual_consumption_kwh
+      properties:
+        mpan_cores:
+          type: string
+          description: The MPAN cores included in the aggregate result.
+        estimated_annual_consumption_kwh:
+          type: number
+          format: decimal
+          description: Estimated annual consumption in kWh.
+      description: A single aggregated annual estimate result for the requested MPAN cohort.
+    Ds22SettlementDate:
+      type: string
+      pattern: ^[0-9]{4}-[0-9]{2}-[0-9]{2}(T00:00:00(\.[0-9]+)?Z?)?$
+    QualityIndicatorCsv:
+      type: string
+      description: Comma-separated quality indicator values used by DS22 filters.
+    EnergyDirectionCsv:
+      type: string
+      description: Comma-separated energy direction values used by DS22 filters.
+    Ds22DailyRecord:
+      type: object
+      required:
+        - settlementDate
+        - energyDirection
+        - spqi
+        - mpanCores
+        - totalConsumptionKwh
+      properties:
+        settlementDate:
+          type: string
+          format: date
+        energyDirection:
+          type: string
+        spqi:
+          type: string
+        mpanCores:
+          type: string
+        totalConsumptionKwh:
+          type: number
+          format: decimal
+    PaginationMetadata:
+      type: object
+      required:
+        - offset
+        - limit
+        - total
+        - hasMore
+      properties:
+        offset:
+          type: integer
+          format: int32
+          description: Number of items skipped before this page.
+        limit:
+          type: integer
+          format: int32
+          description: Maximum number of items requested for this page.
+        total:
+          type: integer
+          format: int64
+          description: Total number of matching items across all pages.
+        hasMore:
+          type: boolean
+          description: Indicates whether additional items exist beyond this page.
+      description: Common pagination metadata for all paginated responses.
+    ResponseMetadata:
+      type: object
+      required:
+        - apiVersion
+        - timestamp
+      properties:
+        apiVersion:
+          type: string
+          description: API version that processed this request.
+        timestamp:
+          type: string
+          format: date-time
+          description: ISO 8601 timestamp when the response was generated.
+        processingTimeMs:
+          type: integer
+          format: int32
+          description: Server processing time in milliseconds.
+        requestId:
+          type: string
+          description: Unique request identifier for tracing and support.
+      description: Request metadata providing context about the API response.
+    Link:
+      type: object
+      required:
+        - rel
+        - href
+      properties:
+        rel:
+          type: string
+          description: Link relation type (e.g., self, next, prev, first, last).
+        href:
+          type: string
+          format: uri
+          description: |-
+            Target URI for this link.
+
+            When the API is behind Azure API Management (APIM), the backend must generate
+            links using the public APIM URL, not the internal backend URL. Implementation options:
+            1. Use X-Forwarded-Host and X-Forwarded-Proto headers passed by APIM
+            2. Use relative URLs (e.g., /catalog/v1/datasets?offset=100)
+            3. Configure the public base URL in application settings
+        method:
+          type: string
+          description: Optional HTTP method for this link (defaults to GET).
+        title:
+          type: string
+          description: Optional human-readable title for this link.
+      description: HATEOAS link for navigation and related resources.
+    Ds22HalfHourlyRecord:
+      type: object
+      required:
+        - settlementDate
+        - settlementPeriod
+        - spqi
+        - energyDirection
+        - mpanCores
+        - totalConsumptionKwh
+      properties:
+        settlementDate:
+          type: string
+          format: date
+        settlementPeriod:
+          type: string
+          description: Settlement-period time range, for example 1030 - 1100.
+        spqi:
+          type: string
+        energyDirection:
+          type: string
+        mpanCores:
+          type: string
+        totalConsumptionKwh:
+          type: number
+          format: decimal
+    Ds22MonthlyRecord:
+      type: object
+      required:
+        - settlementDate
+        - energyDirection
+        - spqi
+        - mpanCores
+        - totalConsumptionKwh
+      properties:
+        settlementDate:
+          type: string
+          description: Settlement month formatted as yyyy-MM, as shown in the Excel response.
+        energyDirection:
+          type: string
+        spqi:
+          type: string
+        mpanCores:
+          type: string
+        totalConsumptionKwh:
+          type: number
+          format: decimal
+    GspGroupId:
+      type: string
+      pattern: ^_[A-HJ-NP]$
+      description: "Grid Supply Point group identifier. Examples: _A, _B, _P."
+    EnergyDirection:
+      type: string
+      enum:
+        - AI
+        - AE
+        - ANY
+      description: Canonical energy direction values used by query APIs.
+    GspMeterCountDailyRecord:
+      type: object
+      required:
+        - settlementDate
+        - gspGroupId
+        - supplierMpid
+        - meterType
+        - flowDirection
+        - totalConsumptionKwh
+        - mpanCount
+        - actualConsumptionKwh
+        - estimatedConsumptionKwh
+      properties:
+        settlementDate:
+          type: string
+          format: date
+          description: The settlement day (local time).
+        gspGroupId:
+          type: string
+          description: Grid Supply Point group identifier.
+        supplierMpid:
+          type: string
+          description: Four-character market-wide supplier identifier.
+        meterType:
+          type: string
+          description: Meter type code.
+        flowDirection:
+          type: string
+          description: Energy flow direction (IMPORT or EXPORT).
+        totalConsumptionKwh:
+          type: number
+          format: decimal
+          description: Sum of metered consumption in kWh.
+        mpanCount:
+          type: integer
+          format: int64
+          description: Count of distinct MPANs in the aggregate.
+        actualConsumptionKwh:
+          type: number
+          format: decimal
+          description: Actual consumption (quality status A) in kWh.
+        estimatedConsumptionKwh:
+          type: number
+          format: decimal
+          description: Estimated consumption (quality status E) in kWh.
+        actualConsumptionPct:
+          type: number
+          format: decimal
+          description: Percentage of consumption that is actual (0-100).
+        estimatedConsumptionPct:
+          type: number
+          format: decimal
+          description: Percentage of consumption that is estimated (0-100).
+      description: Result record for GSP meter count - daily granularity.
+    GspMeterCountMonthlyRecord:
+      type: object
+      required:
+        - yearMonth
+        - gspGroupId
+        - supplierMpid
+        - meterType
+        - flowDirection
+        - totalConsumptionKwh
+        - mpanCount
+        - actualConsumptionKwh
+        - estimatedConsumptionKwh
+      properties:
+        yearMonth:
+          type: string
+          description: Year and month in YYYY-MM format.
+        gspGroupId:
+          type: string
+          description: Grid Supply Point group identifier.
+        supplierMpid:
+          type: string
+          description: Four-character market-wide supplier identifier.
+        meterType:
+          type: string
+          description: Meter type code.
+        flowDirection:
+          type: string
+          description: Energy flow direction (IMPORT or EXPORT).
+        totalConsumptionKwh:
+          type: number
+          format: decimal
+          description: Sum of metered consumption in kWh.
+        mpanCount:
+          type: integer
+          format: int64
+          description: Count of distinct MPANs in the aggregate.
+        actualConsumptionKwh:
+          type: number
+          format: decimal
+          description: Actual consumption (quality status A) in kWh.
+        estimatedConsumptionKwh:
+          type: number
+          format: decimal
+          description: Estimated consumption (quality status E) in kWh.
+        actualConsumptionPct:
+          type: number
+          format: decimal
+          description: Percentage of consumption that is actual (0-100).
+        estimatedConsumptionPct:
+          type: number
+          format: decimal
+          description: Percentage of consumption that is estimated (0-100).
+      description: Result record for GSP meter count - monthly granularity.
+    QualityIndicator:
+      type: string
+      enum:
+        - A
+        - E
+        - ANY
+      description: Canonical quality indicator values used by aggregate query APIs.
+    Ds21DailyGspGroupConsumptionRecord:
+      type: object
+      required:
+        - gspGroupId
+        - settlementDate
+        - spqi
+        - energyDirection
+        - totalConsumptionKwh
+      properties:
+        gspGroupId:
+          type: string
+        settlementDate:
+          type: string
+          format: date
+        spqi:
+          type: string
+        energyDirection:
+          type: string
+        totalConsumptionKwh:
+          type: number
+          format: decimal
+      description: Daily DS21 GSP group consumption result.
+    Ds21HalfHourlyGspGroupConsumptionRecord:
+      type: object
+      required:
+        - gspGroupId
+        - settlementDate
+        - settlementPeriod
+        - spqi
+        - energyDirection
+        - totalConsumptionKwh
+      properties:
+        gspGroupId:
+          type: string
+        settlementDate:
+          type: string
+          format: date
+        settlementPeriod:
+          type: string
+        spqi:
+          type: string
+        energyDirection:
+          type: string
+        totalConsumptionKwh:
+          type: number
+          format: decimal
+      description: Half-hourly DS21 GSP group consumption result.
+    Ds21MonthlyGspGroupConsumptionRecord:
+      type: object
+      required:
+        - gspGroupId
+        - yearMonth
+        - spqi
+        - energyDirection
+        - totalConsumptionKwh
+      properties:
+        gspGroupId:
+          type: string
+        yearMonth:
+          type: string
+        spqi:
+          type: string
+        energyDirection:
+          type: string
+        totalConsumptionKwh:
+          type: number
+          format: decimal
+      description: Monthly DS21 GSP group consumption result.
+    MpanCore:
+      type: string
+      minLength: 13
+      maxLength: 13
+      pattern: ^[0-9]{13}$
+      description: 13-digit Metering Point Administration Number (core part only).
+    QualityStatus:
+      type: string
+      enum:
+        - A
+        - E
+      description: Quality status for metering data.
+    IndividualConsumptionRecord:
+      type: object
+      required:
+        - mpanCore
+        - settlementDate
+        - measurementQuantityId
+        - totalConsumptionKwh
+        - qualityStatus
+      properties:
+        mpanCore:
+          type: string
+          description: 13-digit Metering Point Administration Number.
+        settlementDate:
+          type: string
+          format: date
+          description: The settlement day (local time).
+        measurementQuantityId:
+          type: string
+          enum:
+            - AI
+            - AE
+          description: Active Import (AI) or Active Export (AE).
+        totalConsumptionKwh:
+          type: number
+          format: decimal
+          description: Sum of metered consumption in kWh.
+        qualityStatus:
+          type: string
+          enum:
+            - A
+            - E
+            - Z
+          description: "Quality of readings: A=Actual, E=Estimated, Z=Unknown."
+      description: Result record for individual consumption/generation query.
+    JobPendingResponse:
+      type: object
+      required:
+        - status
+      properties:
+        status:
+          type: string
+          enum:
+            - pending
+          description: Current job status.
+        message:
+          type: string
+          description: Human-readable status message.
+        progressPercent:
+          type: integer
+          format: int32
+          description: Percentage of completion (0-100), if available.
+      description: Response when job is still processing.
+    JobGoneResponse:
+      type: object
+      required:
+        - status
+        - completedAt
+        - purgedAt
+      properties:
+        status:
+          type: string
+          enum:
+            - gone
+          description: Current job status.
+        completedAt:
+          type: string
+          format: date-time
+          description: Timestamp when the job completed.
+        purgedAt:
+          type: string
+          format: date-time
+          description: Timestamp when the results were purged.
+        message:
+          type: string
+          description: Human-readable explanation.
+      description: Response when job completed but results have been purged.
+    PostcodeOutcode:
+      type: string
+      pattern: ^[A-Z]{1,2}[0-9][A-Z0-9]?$
+      description: UK postcode outcode, such as SW1A or M1.
+    MeterType:
+      type: string
+      enum:
+        - S
+        - A
+        - U
+      description: Canonical meter type values.
+    DomesticPremiseStatus:
+      type: string
+      enum:
+        - "0"
+        - "1"
+        - "9"
+      description: Domestic premise indicator values.
+    GeographicMeterCountDailyRecord:
+      type: object
+      required:
+        - outcode
+        - energyDirection
+        - meterType
+        - number
+      properties:
+        outcode:
+          type: string
+          description: Postcode outcode.
+        energyDirection:
+          type: string
+          description: Requested energy direction (AI, AE, or ANY).
+        domesticPremiseIndicator:
+          type: boolean
+          description: Whether the premise is domestic; null when the source status is unknown.
+        meterType:
+          type: string
+          description: Meter type code.
+        number:
+          type: integer
+          format: int64
+          description: Aggregated MPAN count.
+      description: Result record for geographic-area meter count (daily).
+    Ds18DailyRecord:
+      type: object
+      required:
+        - gspGroupId
+        - energyDirection
+        - domesticPremiseIndicator
+        - meterType
+        - number
+      properties:
+        gspGroupId:
+          type: string
+          description: Grid Supply Point group identifier.
+        energyDirection:
+          type: string
+          description: Energy direction value.
+        domesticPremiseIndicator:
+          type: boolean
+          description: Domestic premise indicator.
+        meterType:
+          type: string
+          description: Meter type.
+        number:
+          type: integer
+          format: int64
+          description: Aggregated MPAN count.
+      description: One daily DS18 aggregated MPAN count row.
+    ProfileClassCode:
+      type: string
+      enum:
+        - "00"
+        - "01"
+        - "02"
+        - "03"
+        - "04"
+        - "05"
+        - "06"
+        - "07"
+        - "08"
+      description: Two-digit settlement profile class code used by aggregate profile class query APIs.
+    Ds24DailyProfileClassConsumptionRecord:
+      type: object
+      required:
+        - Profile Class
+        - Settlement Date
+        - SPQI
+        - GSP Group
+        - Outcode
+        - Total Consumption
+      properties:
+        Profile Class:
+          type: string
+        Settlement Date:
+          type: string
+          format: date
+        SPQI:
+          type: string
+        GSP Group:
+          type: string
+        Outcode:
+          type: string
+        Total Consumption:
+          type: number
+          format: double
+      description: Daily DS24 profile class consumption result.
+    Ds24HalfHourlyProfileClassConsumptionRecord:
+      type: object
+      required:
+        - Profile Class
+        - Settlement Date
+        - Settlement Period
+        - SPQI
+        - GSP Group
+        - Outcode
+        - Total Consumption
+      properties:
+        Profile Class:
+          type: string
+        Settlement Date:
+          type: string
+          format: date
+        Settlement Period:
+          type: string
+        SPQI:
+          type: string
+        GSP Group:
+          type: string
+        Outcode:
+          type: string
+        Total Consumption:
+          type: number
+          format: double
+      description: Half-hourly DS24 profile class consumption result.
+    Ds24MonthlyProfileClassConsumptionRecord:
+      type: object
+      required:
+        - Profile Class
+        - Settlement Date
+        - SPQI
+        - GSP Group
+        - Outcode
+        - Total Consumption
+      properties:
+        Profile Class:
+          type: string
+        Settlement Date:
+          type: string
+          description: Settlement month formatted as yyyy-MM.
+        SPQI:
+          type: string
+        GSP Group:
+          type: string
+        Outcode:
+          type: string
+        Total Consumption:
+          type: number
+          format: double
+      description: Monthly DS24 profile class consumption result.
+    Ds23SettlementDate:
+      type: string
+      pattern: ^[0-9]{4}-[0-9]{2}-[0-9]{2}(T00:00:00)?$
+      description: DS23 settlement dates accept the spreadsheet's midnight timestamp or a plain date.
+      example: 2028-01-01T00:00:00
+    Ds23DailyRegionalConsumptionRecord:
+      type: object
+      required:
+        - Outcode
+        - Settlement Date
+        - SPQI
+        - Energy Direction
+        - Total Consumption
+      properties:
+        Outcode:
+          type: string
+        Settlement Date:
+          type: string
+          format: date
+        SPQI:
+          type: string
+        Energy Direction:
+          type: string
+        Total Consumption:
+          type: number
+          format: decimal
+      description: Daily DS23 result with JSON property labels matching the workbook.
+    Ds23HalfHourlyRegionalConsumptionRecord:
+      type: object
+      required:
+        - Outcode
+        - Settlement Date
+        - Settlement Period
+        - SPQI
+        - Energy Direction
+        - Total Consumption
+      properties:
+        Outcode:
+          type: string
+        Settlement Date:
+          type: string
+          format: date
+        Settlement Period:
+          type: string
+        SPQI:
+          type: string
+        Energy Direction:
+          type: string
+        Total Consumption:
+          type: number
+          format: decimal
+      description: Half-hourly DS23 result with JSON property labels matching the workbook.
+    Ds23MonthlyRegionalConsumptionRecord:
+      type: object
+      required:
+        - Outcode
+        - Settlement Date
+        - SPQI
+        - Energy Direction
+        - Total Consumption
+      properties:
+        Outcode:
+          type: string
+        Settlement Date:
+          type: string
+        SPQI:
+          type: string
+        Energy Direction:
+          type: string
+        Total Consumption:
+          type: number
+          format: decimal
+      description: Monthly DS23 result with JSON property labels matching the workbook.
+    QueryResultDto:
+      type: object
+      required:
+        - items
+        - pagination
+      properties:
+        items:
+          type: array
+          items:
+            type: object
+            additionalProperties: {}
+          description: The current page of result items.
+        pagination:
+          allOf:
+            - $ref: "#/components/schemas/PaginationMetadata"
+          description: Pagination metadata for this page.
+      description: |-
+        DEPRECATED: Generic query response. Use specific query routes with typed models instead.
+        This model is retained for backward compatibility but will be removed in a future version.
+  parameters:
+    DownloadParams:
+      name: format
+      in: query
+      required: false
+      description: "Output format for the download (default: csv)."
+      schema:
+        $ref: "#/components/schemas/DownloadFormat"
+      explode: false
+    PaginationParams.offset:
+      name: offset
+      in: query
+      required: false
+      description: Number of records to skip. Defaults to 0.
+      schema:
+        type: integer
+        format: int32
+        default: 0
+      explode: false
+    PaginationParams.limit:
+      name: limit
+      in: query
+      required: false
+      description: Maximum number of records to return. Defaults to 100 and cannot exceed 1000.
+      schema:
+        type: integer
+        format: int32
+        minimum: 1
+        maximum: 1000
+        default: 100
+      explode: false
+    Ds22CommonQueryParams.startDate:
+      name: startDate
+      in: query
+      required: false
+      description: Inclusive UTC settlement start date. Defaults by route granularity when omitted.
+      schema:
+        $ref: "#/components/schemas/Ds22SettlementDate"
+      explode: false
+    Ds22CommonQueryParams.endDate:
+      name: endDate
+      in: query
+      required: false
+      description: Inclusive UTC settlement end date. Defaults to today; half-hourly queries stop at the current UTC time.
+      schema:
+        $ref: "#/components/schemas/Ds22SettlementDate"
+      explode: false
+    Ds22CommonQueryParams.mpanCore:
+      name: mpanCore
+      in: query
+      required: true
+      description: Comma-separated MPAN cores; at least six distinct cores are required.
+      schema:
+        $ref: "#/components/schemas/MpanCoreCsv"
+      explode: false
+    Ds22CommonQueryParams.qualityIndicator:
+      name: qualityIndicator
+      in: query
+      required: false
+      description: Comma-separated quality classes to include. Defaults to ANY.
+      schema:
+        $ref: "#/components/schemas/QualityIndicatorCsv"
+      explode: false
+    Ds22CommonQueryParams.energyDirection:
+      name: energyDirection
+      in: query
+      required: false
+      description: Comma-separated energy directions to include. Defaults to ANY.
+      schema:
+        $ref: "#/components/schemas/EnergyDirectionCsv"
+      explode: false
+    Ds22HalfHourlyQueryParams.settlementPeriodStart:
+      name: settlementPeriodStart
+      in: query
+      required: false
+      description: First settlement-period time to include, in UTC HH:mm format.
+      schema:
+        type: string
+        pattern: ^([01][0-9]|2[0-3]):[0-5][0-9]$
+      explode: false
+    Ds22HalfHourlyQueryParams.settlementPeriodEnd:
+      name: settlementPeriodEnd
+      in: query
+      required: false
+      description: Last settlement-period boundary to include, in UTC HH:mm format.
+      schema:
+        type: string
+        pattern: ^([01][0-9]|2[0-3]):[0-5][0-9]$
+      explode: false
+    DateRangeParams.startDate:
+      name: startDate
+      in: query
+      required: false
+      description: "Inclusive start date. Example: 2026-01-01."
+      schema:
+        type: string
+        format: date
+      explode: false
+    DateRangeParams.endDate:
+      name: endDate
+      in: query
+      required: false
+      description: "Inclusive end date. Example: 2026-01-31."
+      schema:
+        type: string
+        format: date
+      explode: false
+    GspGroupIdsParams:
+      name: gspGroupIds
+      in: query
+      required: false
+      description: "GSP groups to include. Example: _A. Multiple values use OR logic."
+      schema:
+        type: array
+        items:
+          $ref: "#/components/schemas/GspGroupId"
+      explode: false
+    MeasurementQuantityParam:
+      name: measurementQuantityId
+      in: query
+      required: false
+      description: Filter by measurement quantity (AI for consumption, AE for generation). Returns both if omitted.
+      schema:
+        $ref: "#/components/schemas/EnergyDirection"
+      explode: false
+    DateParams.startDate:
+      name: startDate
+      in: query
+      required: false
+      description: Inclusive UTC start date. Defaults to one year before today for daily/monthly routes, or one month before
+        today for half-hourly routes.
+      schema:
+        type: string
+        format: date
+      explode: false
+    DateParams.endDate:
+      name: endDate
+      in: query
+      required: false
+      description: Inclusive UTC end date. Defaults to today; half-hourly routes additionally stop at the current UTC time.
+      schema:
+        type: string
+        format: date
+      explode: false
+    GspGroupIdParams:
+      name: gspGroupId
+      in: query
+      required: false
+      description: "GSP groups to include. Example: _A. Multiple values use OR logic."
+      schema:
+        type: array
+        items:
+          $ref: "#/components/schemas/GspGroupId"
+      explode: false
+    QualityIndicatorParams:
+      name: qualityIndicator
+      in: query
+      required: false
+      description: Data quality. Defaults to Any.
+      schema:
+        allOf:
+          - $ref: "#/components/schemas/QualityIndicator"
+        default: ANY
+      explode: false
+    Ds21EnergyDirectionParams:
+      name: energyDirection
+      in: query
+      required: false
+      description: Energy directions to include. Multiple values use OR logic.
+      schema:
+        type: array
+        items:
+          $ref: "#/components/schemas/EnergyDirection"
+      explode: false
+    Ds21DailyMonthlyDownloadParams.limit:
+      name: limit
+      in: query
+      required: false
+      description: Maximum number of records to export.
+      schema:
+        type: integer
+        format: int32
+      explode: false
+    SettlementPeriodBounds.settlementPeriodStart:
+      name: settlementPeriodStart
+      in: query
+      required: false
+      description: First settlement-period start time in HH:MM format. Defaults to 00:00.
+      schema:
+        type: string
+        pattern: ^([01][0-9]|2[0-3]):[0-5][0-9]$
+        default: 00:00
+      explode: false
+    SettlementPeriodBounds.settlementPeriodEnd:
+      name: settlementPeriodEnd
+      in: query
+      required: false
+      description: Last settlement-period start time in HH:MM format. Defaults to 23:30.
+      schema:
+        type: string
+        pattern: ^([01][0-9]|2[0-3]):[0-5][0-9]$
+        default: 23:30
+      explode: false
+    Ds21HalfHourlyDownloadParams.limit:
+      name: limit
+      in: query
+      required: false
+      description: Maximum number of records to export.
+      schema:
+        type: integer
+        format: int32
+      explode: false
+    MpanCoreParams:
+      name: mpanCores
+      in: query
+      required: false
+      description: Filter by 13-digit MPAN core numbers. Supply multiple values for OR logic.
+      schema:
+        type: array
+        items:
+          $ref: "#/components/schemas/MpanCore"
+      explode: false
+    QualityStatusParam:
+      name: qualityStatus
+      in: query
+      required: false
+      description: Filter by data quality (A for actual, E for estimated). Returns all if omitted.
+      schema:
+        $ref: "#/components/schemas/QualityStatus"
+      explode: false
+    PostcodeOutcodesParams:
+      name: outcodes
+      in: query
+      required: false
+      description: Postcode outcodes to include. Multiple values use OR logic.
+      schema:
+        type: array
+        items:
+          $ref: "#/components/schemas/PostcodeOutcode"
+      explode: false
+    MeterTypesParams:
+      name: meterTypes
+      in: query
+      required: false
+      description: Meter types to include. Multiple values use OR logic.
+      schema:
+        type: array
+        items:
+          $ref: "#/components/schemas/MeterType"
+      explode: false
+    Ds19EnergyDirectionParams:
+      name: energyDirection
+      in: query
+      required: false
+      description: Energy directions to include. Multiple values use OR logic.
+      schema:
+        type: array
+        items:
+          $ref: "#/components/schemas/EnergyDirection"
+      explode: false
+    DomesticPremiseIndicatorsParams:
+      name: domesticPremiseIndicators
+      in: query
+      required: false
+      description: Domestic premise classifications.
+      schema:
+        type: array
+        items:
+          $ref: "#/components/schemas/DomesticPremiseStatus"
+      explode: false
+    Ds18EnergyDirectionParams:
+      name: energyDirection
+      in: query
+      required: false
+      description: Energy directions to include. Multiple values use OR logic.
+      schema:
+        type: array
+        items:
+          $ref: "#/components/schemas/EnergyDirection"
+      explode: false
+    ProfileClassCodeParams:
+      name: profileClass
+      in: query
+      required: false
+      description: Profile classes to include (00-08). Multiple values use OR logic.
+      schema:
+        type: array
+        items:
+          $ref: "#/components/schemas/ProfileClassCode"
+      explode: false
+    Ds24DailyMonthlyDownloadParams.limit:
+      name: limit
+      in: query
+      required: false
+      description: Maximum number of records to export.
+      schema:
+        type: integer
+        format: int32
+      explode: false
+    Ds24HalfHourlyDownloadParams.limit:
+      name: limit
+      in: query
+      required: false
+      description: Maximum number of records to export.
+      schema:
+        type: integer
+        format: int32
+      explode: false
+    Ds23DateRangeParams.startDate:
+      name: startDate
+      in: query
+      required: false
+      description: Inclusive start date; defaults to one year back or one month back for half-hourly queries.
+      schema:
+        $ref: "#/components/schemas/Ds23SettlementDate"
+      explode: false
+    Ds23DateRangeParams.endDate:
+      name: endDate
+      in: query
+      required: false
+      description: Inclusive end date; defaults to the current UTC date.
+      schema:
+        $ref: "#/components/schemas/Ds23SettlementDate"
+      explode: false
+    Ds23OutcodesParams:
+      name: outcodes
+      in: query
+      required: false
+      description: Outcodes to include, for example SW1A or UB2.
+      schema:
+        type: array
+        items:
+          $ref: "#/components/schemas/PostcodeOutcode"
+      explode: false
+    Ds23FilterParams.qualityIndicator:
+      name: qualityIndicator
+      in: query
+      required: false
+      description: |-
+        Settlement-period quality indicators to include. Clients should send one query parameter per value.
+        Comma-separated values are tolerated by the server for compatibility, but are not part of the contract.
+        Defaults to ANY.
+      schema:
+        type: array
+        items:
+          $ref: "#/components/schemas/QualityIndicator"
+    Ds23FilterParams.energyDirection:
+      name: energyDirection
+      in: query
+      required: false
+      description: |-
+        Energy directions to include. Clients should send one query parameter per value.
+        Comma-separated values are tolerated by the server for compatibility, but are not part of the contract.
+        Defaults to ANY.
+      schema:
+        type: array
+        items:
+          $ref: "#/components/schemas/EnergyDirection"
+    Ds23RegionalConsumptionQuery.offset:
+      name: offset
+      in: query
+      required: false
+      description: Number of records to skip. Defaults to 0.
+      schema:
+        type: integer
+        format: int32
+        minimum: 0
+        default: 0
+      explode: false
+    Ds23RegionalConsumptionQuery.limit:
+      name: limit
+      in: query
+      required: false
+      description: Maximum records to return; when omitted, all matching rows are returned.
+      schema:
+        type: integer
+        format: int32
+        minimum: 1
+        maximum: 1000
+      explode: false
+    Ds23DailyMonthlyDownloadParams.limit:
+      name: limit
+      in: query
+      required: false
+      description: Maximum number of records to export.
+      schema:
+        type: integer
+        format: int32
+        minimum: 1
+      explode: false
+    Ds23SettlementPeriodBounds.settlementPeriodStart:
+      name: settlementPeriodStart
+      in: query
+      required: false
+      description: First settlement-period start time, HH:MM or HH:MM:SS with zero seconds; defaults to 00:00.
+      schema:
+        type: string
+        pattern: ^([01][0-9]|2[0-3]):[0-5][0-9](:00)?$
+      explode: false
+    Ds23SettlementPeriodBounds.settlementPeriodEnd:
+      name: settlementPeriodEnd
+      in: query
+      required: false
+      description: Last settlement-period start time, HH:MM or HH:MM:SS with zero seconds; defaults to 23:30.
+      schema:
+        type: string
+        pattern: ^([01][0-9]|2[0-3]):[0-5][0-9](:00)?$
+      explode: false
+    Ds23HalfHourlyDownloadParams.limit:
+      name: limit
+      in: query
+      required: false
+      description: Maximum number of records to export.
+      schema:
+        type: integer
+        format: int32
+        minimum: 1
+      explode: false
+  securitySchemes:
+    OAuth2Auth:
+      type: oauth2
+      flows:
+        authorizationCode:
+          authorizationUrl: https://login.microsoftonline.com/common/oauth2/v2.0/authorize
+          tokenUrl: https://login.microsoftonline.com/common/oauth2/v2.0/token
+          scopes:
+            api://sdr-api/level-1: ""
+            api://sdr-api/level-3: ""
+            api://sdr-api/level-2: ""
