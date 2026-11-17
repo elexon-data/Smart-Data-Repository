@@ -6,6 +6,4 @@ The API source inputs are `apis/catalog/v1/openapi.yaml` and `apis/query/v1/open
 
 The portal uses the SDR-branded theme with Starlight's light/dark control.
 
-GitHub Pages serves the site at `https://docs.sdr.elexon.co.uk/`. Pull requests run tests and a build but do not deploy. A deployment is triggered by changes merged to `main` or manually from the Actions tab.
-
-To configure the domain, first verify it for the GitHub organization, then add `docs.sdr.elexon.co.uk` as the custom domain in the repository's Pages settings. After adding it to GitHub, create a DNS CNAME for `docs.sdr.elexon.co.uk` pointing to `elexon-data.github.io`. Once DNS and the certificate are ready, enable HTTPS enforcement in the Pages settings. See [GitHub's custom domain guidance](https://docs.github.com/en/pages/configuring-a-custom-domain-for-your-github-pages-site/managing-a-custom-domain-for-your-github-pages-site).
+The GitHub Actions build uses `/sdr/` as its base path. The current GitHub Pages URL is `https://elexon-data.github.io/Smart-Data-Repository/`, so the hosting path must match the configured base before deployment. Pull requests run tests and a build but do not deploy. A deployment is triggered by changes merged to `main` or manually from the Actions tab.
