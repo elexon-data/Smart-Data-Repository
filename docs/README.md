@@ -6,4 +6,4 @@ The API source inputs are `apis/catalog/v1/openapi.yaml` and `apis/query/v1/open
 
 The portal uses the SDR-branded theme with Starlight's light/dark control.
 
-The GitHub Actions build uses `/sdr/` as its base path. The current GitHub Pages URL is `https://elexon-data.github.io/Smart-Data-Repository/`, so the hosting path must match the configured base before deployment. Pull requests run tests and a build but do not deploy. A deployment is triggered by changes merged to `main` or manually from the Actions tab.
+GitHub Pages serves the site at `https://elexon-data.github.io/Smart-Data-Repository/`. Pull requests run tests and a build but do not deploy. A deployment is triggered by changes merged to `main` or manually from the Actions tab.
