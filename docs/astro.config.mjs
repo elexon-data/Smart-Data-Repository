@@ -34,9 +34,6 @@ export default defineConfig({
         '@fontsource/lato/900.css',
         './src/styles/sdr-brand.css',
       ],
-      components: {
-        ThemeSelect: './src/components/PortalThemeSelect.astro',
-      },
       plugins: hasCompleteContracts
         ? [
             starlightOpenAPI([
