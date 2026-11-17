@@ -8,8 +8,11 @@ info:
     name: Proprietary
     url: https://www.elexon.co.uk/terms
 servers:
-  - url: https://api.elexon.co.uk
+  - url: https://sdr.elexon.co.uk
     description: Production
+    variables: {}
+  - url: https://stgi.sdr.elexon.co.uk
+    description: Staging
     variables: {}
 paths:
   /api/catalog/v{version}/datasets:
@@ -76,7 +79,6 @@ paths:
             format: int32
             minimum: 1
             maximum: 1000
-            default: 100
           explode: false
         - name: sortBy
           in: query
