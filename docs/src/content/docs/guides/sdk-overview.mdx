@@ -1,8 +1,18 @@
 ---
 title: SDKs and client libraries
-description: Current status and future layout for Smart Data Repository SDKs.
+description: Make SDR API calls with generated snippets or a client generated from OpenAPI.
+sidebar:
+  order: 6
 ---
 
-No official SDKs or generated client libraries are published in this portal yet. The portal keeps API references versioned and separate from guides so that client libraries can be added later without changing the API contract URLs.
+This portal does not publish an official SDR SDK. You can call the APIs with your usual HTTP client or generate a client from the published OpenAPI YAML.
 
-Until an SDK is announced here, use the published API reference directly and follow confirmed authentication guidance. Do not treat third-party or unpublished clients as official.
+## Adapt an operation example
+
+Open an operation in the [API reference](../../reference/) and choose a cURL, JavaScript, Python, TypeScript, or .NET (`HttpClient`) snippet. Check the hostname, path parameters, and input values before running it. For protected operations, use your client application's [sign-in flow](../authentication/) to provide the bearer token at runtime.
+
+## Generate a client
+
+Download the YAML for the API and major version you use and pass it to an OpenAPI generator that supports your language. Keep the contract revision with your client code so you can regenerate it when the contract changes.
+
+Generated code is a starting point, not an official SDK. Verify that it sends the documented parameter formats and content types. Implement token acquisition, pagination, retries, and download handling where your integration needs them; don't assume the generated client supplies these behaviors.

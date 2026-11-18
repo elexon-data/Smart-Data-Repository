@@ -1,10 +1,38 @@
 ---
 title: Authentication
-description: Authentication guidance for Smart Data Repository APIs.
+description: Sign in with Microsoft Entra External ID and authorize SDR API requests.
+sidebar:
+  order: 2
 ---
 
-## Status
+## When you need a token
 
-The versioned API reference documents the security requirements and scopes included in each contract. Separate guidance for the authoritative identity provider, token acquisition flow, and environment-specific configuration has not yet been published here. Follow the API owner's confirmed instructions before attempting to authenticate.
+You can browse the public Catalog without signing in. For Query, send a Microsoft Entra External ID access token for the SDR API. Check the operation's security requirements in the [API reference](../../reference/) for its exact OAuth scope.
 
-Do not place client secrets, access tokens, or other credentials in source code, examples, issue reports, or shared configuration. This portal does not provide credentials.
+| Access level | Requirements | Operations you can call |
+| --- | --- | --- |
+| Level 1 | A verified email account | Level 1 operations |
+| Level 2 | Level 2 access and multi-factor authentication (MFA) | Level 1 and Level 2 operations |
+
+These are API access requirements, not grants. Signing in to an SDR web page does not mean your client has a token for the API or that your account has Level 2 access.
+
+## Obtain an SDR API access token
+
+1. Use the External ID authority and client registration details provided during SDR API onboarding for your environment. Do not derive identity endpoints from the API hostname or reuse a different environment's identity configuration.
+2. Use a maintained identity library such as Microsoft Authentication Library (MSAL). Use **Authorization Code with PKCE** for an interactive client that can receive a redirect, or **Device Authorization** for an input-constrained client if enabled for your registration. Device Authorization still requires a person to finish sign-in in a browser. Do not use client credentials to represent a person or embed a client secret in a public client.
+3. Request only the scope needed by the operation. Send the resulting SDR API **access token**, not an ID token, as an HTTP header:
+
+   ```http
+   Authorization: Bearer <access-token>
+   ```
+
+Keep tokens out of URLs, source code, shared configuration, logs, screenshots, and support reports. Use your identity library's token cache and renewal mechanisms rather than collecting or storing the user's password.
+
+## Troubleshoot authorization
+
+| Response | What to check |
+| --- | --- |
+| `401 Unauthorized` | The token may be missing, expired, or invalid. Check that it is an access token issued by the correct tenant for the SDR API, then acquire a fresh token if needed. |
+| `403 Forbidden` | Compare the operation's required scope with the granted scope and the user's access level. For Level 2, confirm the user has Level 2 access and has completed MFA. |
+
+If the user's access level changes, obtain a new access token; the claims in one that's already issued do not change. Use [the quickstart](../first-request/#2-sign-in-and-call-a-protected-query-operation) to see a complete request.

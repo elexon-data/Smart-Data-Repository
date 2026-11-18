@@ -1,6 +1,18 @@
 ---
 title: Guides
 description: Getting started and integration guidance for Smart Data Repository developers.
+sidebar:
+  label: Overview
+  order: 0
 ---
 
-Use these guides to understand the published API contract and the information needed before integrating. Service availability, authentication details, and deployment-specific values are documented only when they have been confirmed by the API owners.
+Start with the Catalog API to find datasets, then use the Query API to retrieve the data you need.
+
+| Guide | What you'll learn |
+| --- | --- |
+| [Making your first request](./first-request/) | Search the public Catalog and make a protected Query request for daily meter counts. |
+| [Authentication](./authentication/) | Choose a sign-in flow, request the right scope, and troubleshoot access errors. |
+| [Code of Connection](./code-of-connection/) | Connect securely, build requests, and plan for errors and version changes. |
+| [SDKs and client libraries](./sdk-overview/) | Adapt an operation example or generate a client from OpenAPI. |
+
+Use the [API reference](../reference/) for the parameters, scopes, and response schemas of a specific operation. A published contract does not guarantee that the operation is deployed in your environment or enabled for your account.

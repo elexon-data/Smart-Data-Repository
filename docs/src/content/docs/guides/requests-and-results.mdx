@@ -1,0 +1,24 @@
+---
+title: Requests and results
+description: Build valid SDR API requests and consume pages and downloads.
+sidebar:
+  order: 4
+---
+
+## Validate inputs
+
+Use the method, parameter names, and media types in the [API reference](../../reference/) for the operation. Send `Accept` for the expected response format and `Content-Type` when sending a body. Validate required fields, types, allowed values, and ranges before sending a request. Encode query values with your HTTP client's URL builder and check the operation's serialization rules for array filters.
+
+If the API rejects a request, read the status and any field-level error details before submitting a corrected request. Retrying the same invalid input will not fix it.
+
+## Page, filter, and sort results
+
+For operations that support offset pagination, `offset` is zero-based and `limit` is the maximum page size you request. Check the operation for allowed values. Use the response's pagination metadata or a documented next-page link to continue, and keep filters and sorting consistent between pages.
+
+Catalog search supports the `q` search term and documented filters such as `keywords` and `rights`. For example, `?offset=0&limit=5&sortBy=title&sortOrder=asc` requests a small first page sorted by title. Don't assume that Query operations support the same search, filter, or sort parameters as Catalog.
+
+## Retrieve larger results
+
+Narrow the request with supported filters when you only need a subset. Where the operation offers a file download, use its documented media type and stream large files rather than loading them entirely into memory. For operations that expose a job workflow, submit the job, save its identifier, check the documented status operation, and request the download only when the job is ready. Don't assume every download requires a job.
+
+Check dataset-specific limits and suppression rules before interpreting results. Don't treat missing or suppressed values as zero unless the dataset documentation explicitly says to.
