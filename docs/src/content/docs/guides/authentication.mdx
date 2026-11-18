@@ -1,6 +1,6 @@
 ---
 title: Authentication
-description: Sign in with Microsoft Entra External ID and authorize SDR API requests.
+description: Sign in with Microsoft Entra External ID and authorize API requests.
 sidebar:
   order: 2
 ---
@@ -16,7 +16,7 @@ You can browse the public Catalog without signing in. For Query, send a Microsof
 | Level 1 | A verified email account | Level 1 operations |
 | Level 2 | Level 2 access and multi-factor authentication (MFA) | Level 1 and Level 2 operations |
 
-These are API access requirements, not grants. Signing in to an SDR web page does not mean your client has a token for the API or that your account has Level 2 access.
+These are API access requirements, not grants. Signing in to the web portal does not mean your client has a token for the API or that your account has Level 2 access.
 
 ## Obtain an SDR API access token
 
@@ -24,7 +24,7 @@ Use **Device Authorization** (device code flow) for a command-line or input-cons
 
 ### Device code example (PowerShell 7)
 
-Run all three steps in the same PowerShell session. Use the application (client) ID supplied during SDR API onboarding. The registration must be enabled for public client flows and allowed to request the SDR API's delegated scope. Use the example URLs only if your onboarding details match this tenant. This example requests `api://sdr-api/level-1`, the scope for the meter-count operation in the [quickstart](../first-request/#sign-in-and-call-a-protected-query-operation). For other operations, request the scope listed in the [API reference](../../reference/).
+Run all three steps in the same PowerShell session. Use the application (client) ID supplied during API onboarding. The registration must be enabled for public client flows and allowed to request the delegated API scope. Use the example URLs only if your onboarding details match this tenant. This example requests `api://sdr-api/level-1`, the scope for the meter-count operation in the [quickstart](../first-request/#sign-in-and-call-a-protected-query-operation). For other operations, request the scope listed in the [API reference](../../reference/).
 
 <Steps>
 
