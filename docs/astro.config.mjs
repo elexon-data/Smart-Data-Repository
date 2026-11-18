@@ -2,6 +2,7 @@ import starlight from '@astrojs/starlight';
 import { defineConfig } from 'astro/config';
 import { existsSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
+import { starlightBasePath } from 'starlight-base-path';
 import starlightOpenAPI, { openAPISidebarGroups } from 'starlight-openapi';
 
 const catalogSchema = fileURLToPath(
@@ -36,22 +37,25 @@ export default defineConfig({
         '@fontsource/lato/900.css',
         './src/styles/sdr-brand.css',
       ],
-      plugins: hasCompleteContracts
-        ? [
-            starlightOpenAPI([
-              {
-                base: 'reference/catalog/v1',
-                label: 'Catalog API v1',
-                schema: pluginCatalogSchema,
-              },
-              {
-                base: 'reference/query/v1',
-                label: 'Query API v1',
-                schema: pluginQuerySchema,
-              },
-            ]),
-          ]
-        : [],
+      plugins: [
+        starlightBasePath(),
+        ...(hasCompleteContracts
+          ? [
+              starlightOpenAPI([
+                {
+                  base: 'reference/catalog/v1',
+                  label: 'Catalog API v1',
+                  schema: pluginCatalogSchema,
+                },
+                {
+                  base: 'reference/query/v1',
+                  label: 'Query API v1',
+                  schema: pluginQuerySchema,
+                },
+              ]),
+            ]
+          : []),
+      ],
       sidebar: [
         {
           label: 'Guides',
