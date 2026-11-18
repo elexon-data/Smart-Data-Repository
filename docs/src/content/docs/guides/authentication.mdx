@@ -5,6 +5,8 @@ sidebar:
   order: 2
 ---
 
+import { Steps } from '@astrojs/starlight/components';
+
 ## When you need a token
 
 You can browse the public Catalog without signing in. For Query, send a Microsoft Entra External ID access token for the SDR API. Check the operation's security requirements in the [API reference](../../reference/) for its exact OAuth scope.
@@ -22,56 +24,71 @@ Use **Device Authorization** (device code flow) for a command-line or input-cons
 
 ### Device code example (PowerShell 7)
 
-Run this example with the application (client) ID supplied during SDR API onboarding. The registration must be enabled for public client flows and allowed to request the SDR API's delegated scope. Use the example URLs only if your onboarding details match this tenant. This example requests `api://sdr-api/level-1`, the scope for the meter-count operation in the [quickstart](../first-request/#2-sign-in-and-call-a-protected-query-operation). For other operations, request the scope listed in the [API reference](../../reference/).
+Run all three steps in the same PowerShell session. Use the application (client) ID supplied during SDR API onboarding. The registration must be enabled for public client flows and allowed to request the SDR API's delegated scope. Use the example URLs only if your onboarding details match this tenant. This example requests `api://sdr-api/level-1`, the scope for the meter-count operation in the [quickstart](../first-request/#sign-in-and-call-a-protected-query-operation). For other operations, request the scope listed in the [API reference](../../reference/).
 
-```powershell
-$clientId = Read-Host 'SDR application (client) ID'
-$deviceCodeUrl = 'https://elxsdrcsnpd.ciamlogin.com/c88e02ed-0bf9-457c-be96-7f53a1fb6a4f/oauth2/v2.0/devicecode'
-$tokenUrl = 'https://elxsdrcsnpd.ciamlogin.com/c88e02ed-0bf9-457c-be96-7f53a1fb6a4f/oauth2/v2.0/token'
+<Steps>
 
-$accessToken = $null
-$device = Invoke-RestMethod -Method Post -Uri $deviceCodeUrl `
-    -ContentType 'application/x-www-form-urlencoded' -SkipHttpErrorCheck -Body @{
-        client_id = $clientId
-        scope = 'api://sdr-api/level-1'
-    }
-if (-not $device.device_code) {
-    throw "Device authorization failed: $($device.error) $($device.error_description)"
-}
+1. #### Request a device code
 
-$deadline = [DateTimeOffset]::UtcNow.AddSeconds($device.expires_in)
-$interval = [int]($device.interval ?? 5)
-Write-Host "Open $($device.verification_uri) in your browser and enter $($device.user_code)."
+   ```powershell
+   $clientId = Read-Host 'SDR application (client) ID'
+   $deviceCodeUrl = 'https://elxsdrcsnpd.ciamlogin.com/c88e02ed-0bf9-457c-be96-7f53a1fb6a4f/oauth2/v2.0/devicecode'
 
-while ([DateTimeOffset]::UtcNow.AddSeconds($interval) -lt $deadline) {
-    Start-Sleep -Seconds $interval
-    $result = Invoke-RestMethod -Method Post -Uri $tokenUrl `
-        -ContentType 'application/x-www-form-urlencoded' -SkipHttpErrorCheck -Body @{
-            grant_type = 'urn:ietf:params:oauth:grant-type:device_code'
-            client_id = $clientId
-            device_code = $device.device_code
-        }
+   $accessToken = $null
+   $device = Invoke-RestMethod -Method Post -Uri $deviceCodeUrl `
+       -ContentType 'application/x-www-form-urlencoded' -SkipHttpErrorCheck -Body @{
+           client_id = $clientId
+           scope = 'api://sdr-api/level-1'
+       }
+   if (-not $device.device_code) {
+       throw "Device authorization failed: $($device.error) $($device.error_description)"
+   }
 
-    if ($result.access_token) {
-        $accessToken = $result.access_token
-        break
-    }
-    if ($result.error -eq 'authorization_pending') { continue }
-    if ($result.error -eq 'slow_down') {
-        $interval += 5
-        continue
-    }
-    throw "Token request failed: $($result.error) $($result.error_description)"
-}
-if (-not $accessToken) { throw 'Device code expired. Start the sign-in flow again.' }
-```
+   $deadline = [DateTimeOffset]::UtcNow.AddSeconds($device.expires_in)
+   $interval = [int]($device.interval ?? 5)
+   Write-Host "Open $($device.verification_uri) in your browser and enter $($device.user_code)."
+   ```
 
-Only enter a code for a sign-in you initiated yourself. Once sign-in succeeds, use the access token, not an ID token, to call Query. If your onboarding details confirm the production API hostname, run this in the same PowerShell session:
+2. #### Sign in and retrieve the token
 
-```powershell
-Invoke-RestMethod -Uri 'https://sdr.elexon.co.uk/api/query/v1/number-of-meters-in-a-gsp-group?offset=0&limit=5' `
-    -Headers @{ Authorization = "Bearer $accessToken"; Accept = 'application/json' }
-```
+   Open the URL printed in step 1 and enter the displayed code to sign in. Only enter a code for a sign-in you initiated yourself. The following code polls for the access token while you finish signing in.
+
+   ```powershell
+   $tokenUrl = 'https://elxsdrcsnpd.ciamlogin.com/c88e02ed-0bf9-457c-be96-7f53a1fb6a4f/oauth2/v2.0/token'
+
+   while ([DateTimeOffset]::UtcNow.AddSeconds($interval) -lt $deadline) {
+       Start-Sleep -Seconds $interval
+       $result = Invoke-RestMethod -Method Post -Uri $tokenUrl `
+           -ContentType 'application/x-www-form-urlencoded' -SkipHttpErrorCheck -Body @{
+               grant_type = 'urn:ietf:params:oauth:grant-type:device_code'
+               client_id = $clientId
+               device_code = $device.device_code
+           }
+
+       if ($result.access_token) {
+           $accessToken = $result.access_token
+           break
+       }
+       if ($result.error -eq 'authorization_pending') { continue }
+       if ($result.error -eq 'slow_down') {
+           $interval += 5
+           continue
+       }
+       throw "Token request failed: $($result.error) $($result.error_description)"
+   }
+   if (-not $accessToken) { throw 'Device code expired. Start the sign-in flow again.' }
+   ```
+
+3. #### Call the Query API
+
+   Use the access token, not an ID token. If your onboarding details confirm the production API hostname, run:
+
+   ```powershell
+   Invoke-RestMethod -Uri 'https://sdr.elexon.co.uk/api/query/v1/number-of-meters-in-a-gsp-group?offset=0&limit=5' `
+       -Headers @{ Authorization = "Bearer $accessToken"; Accept = 'application/json' }
+   ```
+
+</Steps>
 
 Keep tokens out of URLs, source code, shared configuration, logs, screenshots, and support reports. Use your identity library's token cache and renewal mechanisms rather than collecting or storing the user's password.
 
@@ -82,4 +99,4 @@ Keep tokens out of URLs, source code, shared configuration, logs, screenshots, a
 | `401 Unauthorized` | The token may be missing, expired, or invalid. Check that it is an access token issued by the correct tenant for the SDR API, then acquire a fresh token if needed. |
 | `403 Forbidden` | Compare the operation's required scope with the granted scope and the user's access level. For Level 2, confirm the user has Level 2 access and has completed MFA. |
 
-If the user's access level changes, obtain a new access token; the claims in one that's already issued do not change. Use [the quickstart](../first-request/#2-sign-in-and-call-a-protected-query-operation) to see a complete request.
+If the user's access level changes, obtain a new access token; the claims in one that's already issued do not change. Use [the quickstart](../first-request/#sign-in-and-call-a-protected-query-operation) to see a complete request.

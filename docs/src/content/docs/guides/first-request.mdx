@@ -5,33 +5,39 @@ sidebar:
   order: 1
 ---
 
-## Choose an environment
+import { Steps } from '@astrojs/starlight/components';
 
-The [API reference](../../reference/) lists the contract's server URLs. The examples below use the production hostname, `https://sdr.elexon.co.uk`. Before calling an endpoint, confirm it's available in your chosen environment. If you've been given access to a different environment, use its confirmed hostname and, for protected calls, its matching identity configuration. See the [Connection Requirements](../connection-requirements/#connect-securely) for network and TLS details.
+<Steps>
 
-## 1. Search the public Catalog
+1. ## Choose an environment
 
-List the first five published datasets. You don't need an access token for this request.
+   The [API reference](../../reference/) lists the contract's server URLs. The examples below use the production hostname, `https://sdr.elexon.co.uk`. Before calling an endpoint, confirm it's available in your chosen environment. If you've been given access to a different environment, use its confirmed hostname and, for protected calls, its matching identity configuration. See the [Connection Requirements](../connection-requirements/#connect-securely) for network and TLS details.
 
-```bash
-curl --include \
-  'https://sdr.elexon.co.uk/api/catalog/v1/datasets?offset=0&limit=5' \
-  --header 'Accept: application/json'
-```
+2. ## Search the public Catalog
 
-On `200 OK`, inspect the dataset summaries, facets, and pagination information. Use a summary's `identifier` with the Catalog's dataset detail operation to learn more. To retrieve data, find the corresponding operation in the Query reference; don't assume the Catalog identifier is a Query path segment.
+   List the first five published datasets. You don't need an access token for this request.
 
-## 2. Sign in and call a protected Query operation
+   ```bash
+   curl --include \
+     'https://sdr.elexon.co.uk/api/catalog/v1/datasets?offset=0&limit=5' \
+     --header 'Accept: application/json'
+   ```
 
-This example fetches the first five daily meter-count records grouped by Grid Supply Point (GSP) group and other dimensions. The operation requires the Level 1 scope, `api://sdr-api/level-1`, in the published contract.
+   On `200 OK`, inspect the dataset summaries, facets, and pagination information. Use a summary's `identifier` with the Catalog's dataset detail operation to learn more. To retrieve data, find the corresponding operation in the Query reference; don't assume the Catalog identifier is a Query path segment.
 
-Follow the [authentication guide](../authentication/) to obtain an SDR API access token for this operation. Set `SDR_ACCESS_TOKEN` in your local shell to that access token. The example uses Bash syntax.
+3. ## Sign in and call a protected Query operation
 
-```bash
-curl --include \
-  'https://sdr.elexon.co.uk/api/query/v1/number-of-meters-in-a-gsp-group?offset=0&limit=5' \
-  --header "Authorization: Bearer ${SDR_ACCESS_TOKEN:?Set SDR_ACCESS_TOKEN first}" \
-  --header 'Accept: application/json'
-```
+   This example fetches the first five daily meter-count records grouped by Grid Supply Point (GSP) group and other dimensions. The operation requires the Level 1 scope, `api://sdr-api/level-1`, in the published contract.
 
-On `200 OK`, read the current page from `items` and use `pagination` to determine whether there are more results. If you receive `401`, check the token and its audience. If you receive `403`, check your access level and the operation's required scope. For other responses, see [errors and retries](../operating-your-client/#handle-errors-and-retries).
+   Follow the [authentication guide](../authentication/) to obtain an SDR API access token for this operation. Set `SDR_ACCESS_TOKEN` in your local shell to that access token. The example uses Bash syntax.
+
+   ```bash
+   curl --include \
+     'https://sdr.elexon.co.uk/api/query/v1/number-of-meters-in-a-gsp-group?offset=0&limit=5' \
+     --header "Authorization: Bearer ${SDR_ACCESS_TOKEN:?Set SDR_ACCESS_TOKEN first}" \
+     --header 'Accept: application/json'
+   ```
+
+   On `200 OK`, read the current page from `items` and use `pagination` to determine whether there are more results. If you receive `401`, check the token and its audience. If you receive `403`, check your access level and the operation's required scope. For other responses, see [errors and retries](../operating-your-client/#handle-errors-and-retries).
+
+</Steps>
