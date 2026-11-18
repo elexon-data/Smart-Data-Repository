@@ -1,10 +1,102 @@
 ---
 title: Authentication
-description: Authentication guidance for Smart Data Repository APIs.
+description: Sign in with Microsoft Entra External ID and authorize API requests.
+sidebar:
+  order: 2
 ---
 
-## Status
+import { Steps } from '@astrojs/starlight/components';
 
-The versioned API reference documents the security requirements and scopes included in each contract. Separate guidance for the authoritative identity provider, token acquisition flow, and environment-specific configuration has not yet been published here. Follow the API owner's confirmed instructions before attempting to authenticate.
+## When you need a token
 
-Do not place client secrets, access tokens, or other credentials in source code, examples, issue reports, or shared configuration. This portal does not provide credentials.
+You can browse the public Catalog without signing in. For Query, send a Microsoft Entra External ID access token for the SDR API. Check the operation's security requirements in the [API reference](../../reference/) for its exact OAuth scope.
+
+| Access level | Requirements | Operations you can call |
+| --- | --- | --- |
+| Level 1 | A verified email account | Level 1 operations |
+| Level 2 | Level 2 access and multi-factor authentication (MFA) | Level 1 and Level 2 operations |
+
+These are API access requirements, not grants. Signing in to the web portal does not mean your client has a token for the API or that your account has Level 2 access.
+
+## Obtain an SDR API access token
+
+Use **Device Authorization** (device code flow) for a command-line or input-constrained client when enabled for your registration. If your application can receive a browser redirect, use **Authorization Code with PKCE** instead. Prefer a maintained identity library such as Microsoft Authentication Library (MSAL) in your application. Do not use client credentials to represent a person or embed a client secret in a public client.
+
+### Device code example (PowerShell 7)
+
+Run all three steps in the same PowerShell session. Use the application (client) ID supplied during API onboarding. The registration must be enabled for public client flows and allowed to request the delegated API scope. Use the example URLs only if your onboarding details match this tenant. This example requests `api://sdr-api/level-1`, the scope for the meter-count operation in the [quickstart](../first-request/#sign-in-and-call-a-protected-query-operation). For other operations, request the scope listed in the [API reference](../../reference/).
+
+<Steps>
+
+1. #### Request a device code
+
+   ```powershell
+   $clientId = Read-Host 'SDR application (client) ID'
+   $deviceCodeUrl = 'https://elxsdrcsnpd.ciamlogin.com/c88e02ed-0bf9-457c-be96-7f53a1fb6a4f/oauth2/v2.0/devicecode'
+
+   $accessToken = $null
+   $device = Invoke-RestMethod -Method Post -Uri $deviceCodeUrl `
+       -ContentType 'application/x-www-form-urlencoded' -SkipHttpErrorCheck -Body @{
+           client_id = $clientId
+           scope = 'api://sdr-api/level-1'
+       }
+   if (-not $device.device_code) {
+       throw "Device authorization failed: $($device.error) $($device.error_description)"
+   }
+
+   $deadline = [DateTimeOffset]::UtcNow.AddSeconds($device.expires_in)
+   $interval = [int]($device.interval ?? 5)
+   Write-Host "Open $($device.verification_uri) in your browser and enter $($device.user_code)."
+   ```
+
+2. #### Sign in and retrieve the token
+
+   Open the URL printed in step 1 and enter the displayed code to sign in. Only enter a code for a sign-in you initiated yourself. The following code polls for the access token while you finish signing in.
+
+   ```powershell
+   $tokenUrl = 'https://elxsdrcsnpd.ciamlogin.com/c88e02ed-0bf9-457c-be96-7f53a1fb6a4f/oauth2/v2.0/token'
+
+   while ([DateTimeOffset]::UtcNow.AddSeconds($interval) -lt $deadline) {
+       Start-Sleep -Seconds $interval
+       $result = Invoke-RestMethod -Method Post -Uri $tokenUrl `
+           -ContentType 'application/x-www-form-urlencoded' -SkipHttpErrorCheck -Body @{
+               grant_type = 'urn:ietf:params:oauth:grant-type:device_code'
+               client_id = $clientId
+               device_code = $device.device_code
+           }
+
+       if ($result.access_token) {
+           $accessToken = $result.access_token
+           break
+       }
+       if ($result.error -eq 'authorization_pending') { continue }
+       if ($result.error -eq 'slow_down') {
+           $interval += 5
+           continue
+       }
+       throw "Token request failed: $($result.error) $($result.error_description)"
+   }
+   if (-not $accessToken) { throw 'Device code expired. Start the sign-in flow again.' }
+   ```
+
+3. #### Call the Query API
+
+   Use the access token, not an ID token. If your onboarding details confirm the production API hostname, run:
+
+   ```powershell
+   Invoke-RestMethod -Uri 'https://sdr.elexon.co.uk/api/query/v1/number-of-meters-in-a-gsp-group?offset=0&limit=5' `
+       -Headers @{ Authorization = "Bearer $accessToken"; Accept = 'application/json' }
+   ```
+
+</Steps>
+
+Keep tokens out of URLs, source code, shared configuration, logs, screenshots, and support reports. Use your identity library's token cache and renewal mechanisms rather than collecting or storing the user's password.
+
+## Troubleshoot authorization
+
+| Response | What to check |
+| --- | --- |
+| `401 Unauthorized` | The token may be missing, expired, or invalid. Check that it is an access token issued by the correct tenant for the SDR API, then acquire a fresh token if needed. |
+| `403 Forbidden` | Compare the operation's required scope with the granted scope and the user's access level. For Level 2, confirm the user has Level 2 access and has completed MFA. |
+
+If the user's access level changes, obtain a new access token; the claims in one that's already issued do not change. Use [the quickstart](../first-request/#sign-in-and-call-a-protected-query-operation) to see a complete request.

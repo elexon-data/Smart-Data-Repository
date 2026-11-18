@@ -1,0 +1,29 @@
+---
+title: Connection Requirements
+description: How to connect securely and use the APIs responsibly.
+sidebar:
+  order: 3
+---
+
+Use only documented, versioned API routes. Protect your credentials and handle the data in line with its access and usage terms.
+
+## Connect securely
+
+- Your client initiates the connection to the confirmed API hostname over the public internet using HTTPS on TCP port 443. The service does not initiate connections to your system, and you do not need a private circuit.
+- Use TLS 1.3 or later. Validate the server certificate and hostname with your trusted certificate store. Do not disable validation or fall back to an older TLS version.
+- Client certificates and mutual TLS are not required. Use the [authentication guide](../authentication/) for protected calls.
+
+## Use the documented API
+
+The API host is separate from this documentation site. Use the server URL for your environment and a documented path such as `/api/catalog/v1/datasets`. Keep the major version in the URL and do not rely on unversioned paths.
+
+The [API reference](../../reference/) defines each operation's parameters, scopes, and response schemas. Confirm availability for your environment and account before integrating.
+
+## Fair use
+
+Use the APIs in line with fair use.
+
+## Build and operate your integration
+
+- [Requests and results](../requests-and-results/) explains validation, pagination, filters, sorting, and downloads.
+- [Operating your client](../operating-your-client/) explains error handling, diagnostics, and version changes.

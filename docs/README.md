@@ -6,4 +6,6 @@ The API source inputs are `apis/catalog/v1/openapi.yaml` and `apis/query/v1/open
 
 The portal uses the SDR-branded theme with Starlight's light/dark control.
 
+Write internal Markdown and hero-action links relative to the site root (for example, `/guides/`). `starlight-base-path` adds the configured Astro base path for GitHub Pages; do not include the repository name in these links.
+
 GitHub Pages serves the site at `https://elexon-data.github.io/Smart-Data-Repository/`. Pull requests run tests and a build but do not deploy. A deployment is triggered by changes merged to `main` or manually from the Actions tab.

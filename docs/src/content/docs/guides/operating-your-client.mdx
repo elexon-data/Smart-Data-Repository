@@ -1,0 +1,25 @@
+---
+title: Operating your client
+description: Handle API errors and prepare your integration for version changes.
+sidebar:
+  order: 5
+---
+
+## Handle errors and retries
+
+Start with the HTTP status code. When the response includes a Problem Details body, use its `type`, `title`, and `detail` to diagnose the request, and look for field-level information on validation errors. The operation's contract describes its documented error responses; not all errors have a JSON body.
+
+| Response | Client action |
+| --- | --- |
+| `400 Bad Request` | Check required inputs and correct the request before trying again. |
+| `401 Unauthorized` or `403 Forbidden` | Follow the [authentication troubleshooting guide](../authentication/#troubleshoot-authorization). |
+| `404 Not Found` | Check the environment, versioned path, and resource identifier. |
+| `503 Service Unavailable` or `504 Gateway Timeout` | Retry only if the operation is safe to repeat. Respect `Retry-After` if present; otherwise use bounded exponential backoff with jitter. |
+
+Don't automatically resubmit a job after a timeout: a missing response doesn't mean the job wasn't created. Check its state if you have the job identifier, and follow the operation's guidance on safe retries.
+
+For diagnostics, record the UTC timestamp, environment, operation, status, and `X-Correlation-Id` if returned. Remove tokens, credentials, and sensitive data before sharing logs.
+
+## Prepare for API changes
+
+Use an explicit major version in your requests. Review the [versioned API reference](../../reference/) when you update your client, and allow for additive changes such as new optional response fields. Check release and deprecation notices supplied for your integration. If a replacement version is announced, compare the affected operations and test the new version before switching production traffic.

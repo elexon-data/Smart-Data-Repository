@@ -1,0 +1,10 @@
+html:root {
+  color-scheme: light;
+  --sl-color-bg: #ffffff;
+  background-color: var(--sl-color-bg);
+}
+
+html:root[data-theme='dark'] {
+  color-scheme: dark;
+  --sl-color-bg: #130e2f;
+}

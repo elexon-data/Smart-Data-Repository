@@ -4,9 +4,18 @@ description: Versioned Smart Data Repository API contracts.
 ---
 
 import ContractStatus from '../../../components/ContractStatus.astro';
+import PreReleaseNotice from '../../../components/PreReleaseNotice.astro';
 
-The API references are generated from the versioned OpenAPI contracts supplied to this repository. Contract files are preserved as downloadable YAML and also rendered as standalone HTML.
+<PreReleaseNotice />
 
-Operation examples include cURL, JavaScript, Python, TypeScript, and .NET (`HttpClient`) snippets. Replace `Bearer <access-token>` with a token obtained through the confirmed authentication guidance before making an authenticated request.
+Use **Catalog API v1** to search dataset metadata, fetch details, and look up lineage and related datasets. Use **Query API v1** to retrieve dataset records, make downloads, or submit and check download jobs where the operation supports them.
+
+| Format | When to use it |
+| --- | --- |
+| Integrated reference | Look up an operation's path, parameters, security, response media types, and schemas. Copy a cURL, JavaScript, Python, TypeScript, or .NET example to adapt for your client. |
+| OpenAPI YAML | Import the contract into an API tool, validate requests, or generate a client. |
+| Standalone reference | Browse the complete contract for one API in a single page. |
 
 <ContractStatus />
+
+Before calling an operation, confirm which environment you can access. For protected calls, replace the example bearer token using the [authentication guide](../guides/authentication/). If you're new to the APIs, follow [Making your first request](../guides/first-request/).
