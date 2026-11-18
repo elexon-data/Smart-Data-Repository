@@ -17,7 +17,6 @@ html:root[data-theme='light'] {
   --sl-color-accent-high: #000081;
   --sl-color-text-accent: #000081;
   --sl-color-text-invert: #ffffff;
-  --sl-color-bg: #ffffff;
   --sl-color-bg-nav: #000081;
   --sl-color-bg-sidebar: #f2f3f3;
   --sl-color-bg-inline-code: #f2f3f3;
@@ -35,7 +34,6 @@ html:root[data-theme='light'] {
   --sl-color-red: #d32f2f;
   --sl-color-red-high: #d32f2f;
 
-  color-scheme: light;
 }
 
 html:root .site-title {
@@ -65,7 +63,6 @@ html:root[data-theme='dark'] {
   --sl-color-accent-high: #a6ff4d;
   --sl-color-text-accent: #5ccbff;
   --sl-color-text-invert: #130e2f;
-  --sl-color-bg: #130e2f;
   --sl-color-bg-nav: #ffffff;
   --sl-color-bg-sidebar: #221d39;
   --sl-color-bg-inline-code: #332b4f;
@@ -90,7 +87,6 @@ html:root[data-theme='dark'] {
   --sl-color-red: #f06b6b;
   --sl-color-red-high: #ffc2c2;
 
-  color-scheme: dark;
 }
 
 html:root[data-theme='dark'] .header {
