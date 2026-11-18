@@ -18,13 +18,60 @@ These are API access requirements, not grants. Signing in to an SDR web page doe
 
 ## Obtain an SDR API access token
 
-1. Use the External ID authority and client registration details provided during SDR API onboarding for your environment. Do not derive identity endpoints from the API hostname or reuse a different environment's identity configuration.
-2. Use a maintained identity library such as Microsoft Authentication Library (MSAL). Use **Authorization Code with PKCE** for an interactive client that can receive a redirect, or **Device Authorization** for an input-constrained client if enabled for your registration. Device Authorization still requires a person to finish sign-in in a browser. Do not use client credentials to represent a person or embed a client secret in a public client.
-3. Request only the scope needed by the operation. Send the resulting SDR API **access token**, not an ID token, as an HTTP header:
+Use **Device Authorization** (device code flow) for a command-line or input-constrained client when enabled for your registration. If your application can receive a browser redirect, use **Authorization Code with PKCE** instead. Prefer a maintained identity library such as Microsoft Authentication Library (MSAL) in your application. Do not use client credentials to represent a person or embed a client secret in a public client.
 
-   ```http
-   Authorization: Bearer <access-token>
-   ```
+### Device code example (PowerShell 7)
+
+Run this example with the application (client) ID supplied during SDR API onboarding. The registration must be enabled for public client flows and allowed to request the SDR API's delegated scope. Use the example URLs only if your onboarding details match this tenant. This example requests `api://sdr-api/level-1`, the scope for the meter-count operation in the [quickstart](../first-request/#2-sign-in-and-call-a-protected-query-operation). For other operations, request the scope listed in the [API reference](../../reference/).
+
+```powershell
+$clientId = Read-Host 'SDR application (client) ID'
+$deviceCodeUrl = 'https://elxsdrcsnpd.ciamlogin.com/c88e02ed-0bf9-457c-be96-7f53a1fb6a4f/oauth2/v2.0/devicecode'
+$tokenUrl = 'https://elxsdrcsnpd.ciamlogin.com/c88e02ed-0bf9-457c-be96-7f53a1fb6a4f/oauth2/v2.0/token'
+
+$accessToken = $null
+$device = Invoke-RestMethod -Method Post -Uri $deviceCodeUrl `
+    -ContentType 'application/x-www-form-urlencoded' -SkipHttpErrorCheck -Body @{
+        client_id = $clientId
+        scope = 'api://sdr-api/level-1'
+    }
+if (-not $device.device_code) {
+    throw "Device authorization failed: $($device.error) $($device.error_description)"
+}
+
+$deadline = [DateTimeOffset]::UtcNow.AddSeconds($device.expires_in)
+$interval = [int]($device.interval ?? 5)
+Write-Host "Open $($device.verification_uri) in your browser and enter $($device.user_code)."
+
+while ([DateTimeOffset]::UtcNow.AddSeconds($interval) -lt $deadline) {
+    Start-Sleep -Seconds $interval
+    $result = Invoke-RestMethod -Method Post -Uri $tokenUrl `
+        -ContentType 'application/x-www-form-urlencoded' -SkipHttpErrorCheck -Body @{
+            grant_type = 'urn:ietf:params:oauth:grant-type:device_code'
+            client_id = $clientId
+            device_code = $device.device_code
+        }
+
+    if ($result.access_token) {
+        $accessToken = $result.access_token
+        break
+    }
+    if ($result.error -eq 'authorization_pending') { continue }
+    if ($result.error -eq 'slow_down') {
+        $interval += 5
+        continue
+    }
+    throw "Token request failed: $($result.error) $($result.error_description)"
+}
+if (-not $accessToken) { throw 'Device code expired. Start the sign-in flow again.' }
+```
+
+Only enter a code for a sign-in you initiated yourself. Once sign-in succeeds, use the access token, not an ID token, to call Query. If your onboarding details confirm the production API hostname, run this in the same PowerShell session:
+
+```powershell
+Invoke-RestMethod -Uri 'https://sdr.elexon.co.uk/api/query/v1/number-of-meters-in-a-gsp-group?offset=0&limit=5' `
+    -Headers @{ Authorization = "Bearer $accessToken"; Accept = 'application/json' }
+```
 
 Keep tokens out of URLs, source code, shared configuration, logs, screenshots, and support reports. Use your identity library's token cache and renewal mechanisms rather than collecting or storing the user's password.
 
