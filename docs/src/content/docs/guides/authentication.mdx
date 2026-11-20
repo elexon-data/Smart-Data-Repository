@@ -9,14 +9,20 @@ import { Steps } from '@astrojs/starlight/components';
 
 ## When you need a token
 
-You can browse the public Catalog without signing in. For Query, send a Microsoft Entra External ID access token for the SDR API. Check the operation's security requirements in the [API reference](../../reference/) for its exact OAuth scope.
+To connect to the APIs:
+
+- Register an account through the [main portal](https://sdr.elexon.co.uk) or the portal page for your environment. A portal account provides access to the APIs.
+- For Query requests, obtain a Microsoft Entra External ID access token using the steps below.
+- Use the exact OAuth scope listed in the [API reference](../../reference/) for the operation you want to call.
+
+You can browse the public Catalog without signing in, but we recommend sending a bearer token for better rate limits.
 
 | Access level | Requirements | Operations you can call |
 | --- | --- | --- |
 | Level 1 | A verified email account | Level 1 operations |
 | Level 2 | Level 2 access and multi-factor authentication (MFA) | Level 1 and Level 2 operations |
 
-These are API access requirements, not grants. Signing in to the web portal does not mean your client has a token for the API or that your account has Level 2 access.
+Level 2 operations additionally require Level 2 access and multi-factor authentication (MFA).
 
 ## Obtain an SDR API access token
 
