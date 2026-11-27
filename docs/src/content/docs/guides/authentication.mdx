@@ -11,16 +11,17 @@ import { Steps } from '@astrojs/starlight/components';
 
 To connect to the APIs:
 
-- Register an account through the [main portal](https://sdr.elexon.co.uk) or the portal page for your environment. A portal account provides access to the APIs.
+- Register an account through the [main portal](https://sdr.elexon.co.uk) or the portal page for your environment. Access to protected API operations depends on your account's roles.
 - For Query requests, obtain a Microsoft Entra External ID access token using the steps below.
-- Use the exact OAuth scope listed in the [API reference](../../reference/) for the operation you want to call.
+- Request the OAuth scope for your environment. The tsti scope is `api://b0d8dec4-5999-48d1-882c-f02019d8cf28/user_impersonation`.
+- Ensure your account has the role required for the operation. Authorization is based on roles, not operation-specific scopes.
 
 You can browse the public Catalog without signing in, but we recommend sending a bearer token for better rate limits.
 
 | Access level | Requirements | Operations you can call |
 | --- | --- | --- |
-| Level 1 | A verified email account | Level 1 operations |
-| Level 2 | Level 2 access and multi-factor authentication (MFA) | Level 1 and Level 2 operations |
+| Level 1 | A verified email account and the required role | Level 1 operations |
+| Level 2 | Level 2 access, the required role, and multi-factor authentication (MFA) | Level 1 and Level 2 operations |
 
 ## Obtain an SDR API access token
 
@@ -28,7 +29,7 @@ Use **Device Authorization** (device code flow) for a command-line or input-cons
 
 ### Device code example (PowerShell 7)
 
-This example uses the **tsti test environment**, including its sign-in tenant and API hostname. Run all three steps in the same PowerShell session. Use the application (client) ID supplied during API onboarding for tsti. The registration must be enabled for public client flows and allowed to request the delegated API scope. This example requests `api://sdr-api/level-1`, the scope for the meter-count operation in the [quickstart](../first-request/#sign-in-and-call-a-protected-query-operation). Confirm the scope for your environment with your onboarding details; for other operations, consult the [API reference](../../reference/). For another environment, use its matching tenant, client ID, scope, and API hostname.
+This example uses the **tsti test environment**, including its sign-in tenant and API hostname. Run all three steps in the same PowerShell session. Use the application (client) ID supplied during API onboarding for tsti. The registration must be enabled for public client flows and allowed to request the tsti delegated API scope. The user's roles determine which operations are authorized. For another environment, use its matching tenant, client ID, scope, and API hostname.
 
 <Steps>
 
@@ -42,7 +43,7 @@ This example uses the **tsti test environment**, including its sign-in tenant an
    $device = Invoke-RestMethod -Method Post -Uri $deviceCodeUrl `
        -ContentType 'application/x-www-form-urlencoded' -SkipHttpErrorCheck -Body @{
            client_id = $clientId
-           scope = 'api://sdr-api/level-1'
+           scope = 'api://b0d8dec4-5999-48d1-882c-f02019d8cf28/user_impersonation'
        }
    if (-not $device.device_code) {
        throw "Device authorization failed: $($device.error) $($device.error_description)"
@@ -101,6 +102,6 @@ Keep tokens out of URLs, source code, shared configuration, logs, screenshots, a
 | Response | What to check |
 | --- | --- |
 | `401 Unauthorized` | The token may be missing, expired, or invalid. Check that it is an access token issued by the correct tenant for the SDR API, then acquire a fresh token if needed. |
-| `403 Forbidden` | Compare the operation's required scope with the granted scope and the user's access level. For Level 2, confirm the user has Level 2 access and has completed MFA. |
+| `403 Forbidden` | Check that the user has the role required for the operation. For Level 2, confirm the user has Level 2 access and has completed MFA. |
 
-If the user's access level changes, obtain a new access token; the claims in one that's already issued do not change. Use [the quickstart](../first-request/#sign-in-and-call-a-protected-query-operation) to see a complete request.
+If the user's roles or access level change, obtain a new access token; the claims in one that's already issued do not change. Use [the quickstart](../first-request/#sign-in-and-call-a-protected-query-operation) to see a complete request.

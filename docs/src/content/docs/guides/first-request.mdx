@@ -27,7 +27,7 @@ import { Steps } from '@astrojs/starlight/components';
 
 3. ## Sign in and call a protected Query operation
 
-   This example fetches the first five daily meter-count records grouped by Grid Supply Point (GSP) group and other dimensions. The operation requires the Level 1 scope, `api://sdr-api/level-1`, in the published contract.
+   This example fetches the first five daily meter-count records grouped by Grid Supply Point (GSP) group and other dimensions. The user needs the role required for Level 1 access.
 
    Follow the [authentication guide](../authentication/) to obtain a tsti access token for this operation. Set `SDR_ACCESS_TOKEN` in your local shell to that access token. The example uses Bash syntax.
 
@@ -38,6 +38,6 @@ import { Steps } from '@astrojs/starlight/components';
      --header 'Accept: application/json'
    ```
 
-   On `200 OK`, read the current page from `items` and use `pagination` to determine whether there are more results. If you receive `401`, check the token and its audience. If you receive `403`, check your access level and the operation's required scope. For other responses, see [errors and retries](../operating-your-client/#handle-errors-and-retries).
+   On `200 OK`, read the current page from `items` and use `pagination` to determine whether there are more results. If you receive `401`, check the token and its audience. If you receive `403`, check that your account has the role required for the operation. For other responses, see [errors and retries](../operating-your-client/#handle-errors-and-retries).
 
 </Steps>
