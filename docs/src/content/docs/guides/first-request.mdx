@@ -11,7 +11,7 @@ import { Steps } from '@astrojs/starlight/components';
 
 1. ## Choose an environment
 
-   The [API reference](../../reference/) lists the contract's server URLs. The examples below use the production hostname, `https://sdr.elexon.co.uk`. Before calling an endpoint, confirm it's available in your chosen environment. If you've been given access to a different environment, use its confirmed hostname and, for protected calls, its matching identity configuration. See the [Connection Requirements](../connection-requirements/#connect-securely) for network and TLS details.
+   The examples below use the **tsti test environment** hostname, `https://tsti.sdr.elexon.co.uk`, and the matching identity configuration in the authentication guide. Before calling an endpoint, confirm it's available in your chosen environment. If you've been given access to a different environment, use its confirmed hostname and, for protected calls, its matching identity configuration. The [API reference](../../reference/) lists the contract's server URLs. See the [Connection Requirements](../connection-requirements/#connect-securely) for network and TLS details.
 
 2. ## Search the public Catalog
 
@@ -19,7 +19,7 @@ import { Steps } from '@astrojs/starlight/components';
 
    ```bash
    curl --include \
-     'https://sdr.elexon.co.uk/api/catalog/v1/datasets?offset=0&limit=5' \
+     'https://tsti.sdr.elexon.co.uk/api/catalog/v1/datasets?offset=0&limit=5' \
      --header 'Accept: application/json'
    ```
 
@@ -29,11 +29,11 @@ import { Steps } from '@astrojs/starlight/components';
 
    This example fetches the first five daily meter-count records grouped by Grid Supply Point (GSP) group and other dimensions. The operation requires the Level 1 scope, `api://sdr-api/level-1`, in the published contract.
 
-   Follow the [authentication guide](../authentication/) to obtain an access token for this operation. Set `SDR_ACCESS_TOKEN` in your local shell to that access token. The example uses Bash syntax.
+   Follow the [authentication guide](../authentication/) to obtain a tsti access token for this operation. Set `SDR_ACCESS_TOKEN` in your local shell to that access token. The example uses Bash syntax.
 
    ```bash
    curl --include \
-     'https://sdr.elexon.co.uk/api/query/v1/number-of-meters-in-a-gsp-group?offset=0&limit=5' \
+     'https://tsti.sdr.elexon.co.uk/api/query/v1/number-of-meters-in-a-gsp-group?offset=0&limit=5' \
      --header "Authorization: Bearer ${SDR_ACCESS_TOKEN:?Set SDR_ACCESS_TOKEN first}" \
      --header 'Accept: application/json'
    ```

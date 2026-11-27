@@ -28,7 +28,7 @@ Use **Device Authorization** (device code flow) for a command-line or input-cons
 
 ### Device code example (PowerShell 7)
 
-Run all three steps in the same PowerShell session. Use the application (client) ID supplied during API onboarding. The registration must be enabled for public client flows and allowed to request the delegated API scope. Use the example URLs only if your onboarding details match this tenant. This example requests `api://sdr-api/level-1`, the scope for the meter-count operation in the [quickstart](../first-request/#sign-in-and-call-a-protected-query-operation). For other operations, request the scope listed in the [API reference](../../reference/).
+This example uses the **tsti test environment**, including its sign-in tenant and API hostname. Run all three steps in the same PowerShell session. Use the application (client) ID supplied during API onboarding for tsti. The registration must be enabled for public client flows and allowed to request the delegated API scope. This example requests `api://sdr-api/level-1`, the scope for the meter-count operation in the [quickstart](../first-request/#sign-in-and-call-a-protected-query-operation). Confirm the scope for your environment with your onboarding details; for other operations, consult the [API reference](../../reference/). For another environment, use its matching tenant, client ID, scope, and API hostname.
 
 <Steps>
 
@@ -85,10 +85,10 @@ Run all three steps in the same PowerShell session. Use the application (client)
 
 3. #### Call the Query API
 
-   Use the access token, not an ID token. If your onboarding details confirm the production API hostname, run:
+   Use the access token, not an ID token, to call the tsti API:
 
    ```powershell
-   Invoke-RestMethod -Uri 'https://sdr.elexon.co.uk/api/query/v1/number-of-meters-in-a-gsp-group?offset=0&limit=5' `
+   Invoke-RestMethod -Uri 'https://tsti.sdr.elexon.co.uk/api/query/v1/number-of-meters-in-a-gsp-group?offset=0&limit=5' `
        -Headers @{ Authorization = "Bearer $accessToken"; Accept = 'application/json' }
    ```
 
