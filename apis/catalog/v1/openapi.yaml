@@ -113,6 +113,7 @@ paths:
                 required:
                   - items
                   - pagination
+                  - query
                 properties:
                   items:
                     type: array
@@ -319,6 +320,7 @@ paths:
         - {}
 tags:
   - name: Catalog
+    description: Browse and search the data catalog. Discover available datasets, their metadata, and access requirements.
 components:
   schemas:
     ApiMajorVersion:
@@ -344,9 +346,7 @@ components:
       type: string
       enum:
         - published
-        - draft
-        - retired
-      description: Supported dataset publication statuses. Values are case-insensitive in requests.
+      description: Publicly accessible dataset publication status. Values are case-insensitive in requests.
     DatasetSummary:
       type: object
       required:
@@ -412,23 +412,19 @@ components:
       description: A single facet bucket containing a distinct value and its count.
     QueryEcho:
       type: object
+      required:
+        - q
+        - appliedFilters
       properties:
-        searchTerm:
+        q:
           type: string
-          description: Free-text search term that was applied.
-        filters:
-          type: object
-          additionalProperties:
-            type: array
-            items:
-              type: string
-          description: Filters that were applied (e.g., rights).
-        sortBy:
-          type: string
-          description: Sort field that was applied.
-        sortOrder:
-          type: string
-          description: Sort direction that was applied.
+          nullable: true
+          description: Free-text search term that was applied, or null when absent.
+        appliedFilters:
+          type: array
+          items:
+            type: string
+          description: Applied filter keys, including the selected status (published by default).
       description: Query parameters echoed back to the client for transparency.
     ResponseMetadata:
       type: object
@@ -505,19 +501,21 @@ components:
         - title
         - description
         - rights
-        - status
+        - dailyRecordVolume
+        - retiredDate
         - issued
         - modified
         - publisher
-        - creator
         - keywords
-        - language
         - license
+        - temporalCoverage
+        - accrualPeriodicity
         - slaTier
-        - visibility
+        - layer
         - hasExplicitLineage
         - unityReference
         - distributions
+        - schema
       properties:
         identifier:
           type: string
@@ -531,20 +529,15 @@ components:
         rights:
           type: string
           description: Access rights — public, restricted, or internal (dct:rights).
-        status:
-          allOf:
-            - $ref: "#/components/schemas/CatalogDatasetStatus"
-          description: Publication status, selected using the status query parameter.
-        version:
-          type: string
-          description: Dataset version identifier; absent for some retired datasets.
         dailyRecordVolume:
           type: integer
           format: int32
-          description: Expected daily record volume; absent for some retired datasets.
+          nullable: true
+          description: Expected daily record volume; null when unavailable.
         retiredDate:
           type: string
           format: date-time
+          nullable: true
           description: Date the dataset was retired from discovery.
         issued:
           type: string
@@ -558,43 +551,31 @@ components:
           allOf:
             - $ref: "#/components/schemas/Publisher"
           description: Publishing organisation (dct:publisher).
-        creator:
-          type: string
-          description: Team or system that produces the dataset (dct:creator).
         keywords:
           type: array
           items:
             type: string
           description: Free-text categorisation tags (dcat:keyword).
-        language:
-          type: string
-          description: ISO 639-1 language code (dct:language).
         license:
           type: string
           format: uri
           description: URI of the licence (dct:license).
-        spatialCoverage:
-          type: string
-          description: Geographic area the dataset covers (dct:spatial).
         temporalCoverage:
+          type: object
           allOf:
             - $ref: "#/components/schemas/TemporalCoverage"
+          nullable: true
           description: Time period the dataset covers (dct:temporal).
         accrualPeriodicity:
           type: string
+          nullable: true
           description: How often the dataset is refreshed (dct:accrualPeriodicity).
-        granularity:
-          type: string
-          description: Include data detail level to support non-technical interpretation.Data granularity (for example,
-            half-hourly, daily, monthly).
         slaTier:
           type: string
           description: Service-level tier — Gold, Silver, or Bronze (SDR extension).
-        visibility:
-          type: string
-          description: Visibility level — public, restricted, or internal (SDR extension).
         layer:
           type: string
+          nullable: true
           description: Data processing layer (SDR extension).
         hasExplicitLineage:
           type: boolean
@@ -613,9 +594,11 @@ components:
             - $ref: "#/components/schemas/ExampleData"
           description: Optional example data for the dataset.
         schema:
+          type: object
           allOf:
             - $ref: "#/components/schemas/DatasetSchema"
-          description: Result schema and query parameters; absent for some retired datasets.
+          nullable: true
+          description: Result schema and query parameters; null when unavailable.
       description: Detailed representation of a dataset returned by the get endpoint.
     Publisher:
       type: object
@@ -635,6 +618,7 @@ components:
       type: object
       required:
         - start
+        - end
       properties:
         start:
           type: string
@@ -643,6 +627,7 @@ components:
         end:
           type: string
           format: date
+          nullable: true
           description: End date of coverage; null means ongoing.
       description: Time period the dataset covers (dct:temporal).
     UnityReference:
@@ -669,6 +654,9 @@ components:
         - accessUrl
         - format
         - mediaType
+        - conformsTo
+        - authentication
+        - requestType
       properties:
         title:
           type: string
@@ -685,12 +673,15 @@ components:
           description: IANA media type, e.g. application/json (dcat:mediaType).
         conformsTo:
           type: string
+          nullable: true
           description: Standard the distribution conforms to (dct:conformsTo).
         authentication:
           type: string
+          nullable: true
           description: Authentication method required to access the distribution.
         requestType:
           type: string
+          nullable: true
           description: HTTP method used to request the distribution.
       description: A distribution channel for a dataset (dcat:Distribution).
     ExampleData:
@@ -736,6 +727,10 @@ components:
         - label
         - type
         - nullable
+        - description
+        - allowedValues
+        - precision
+        - scale
       properties:
         name:
           type: string
@@ -747,16 +742,20 @@ components:
           type: boolean
         description:
           type: string
+          nullable: true
         allowedValues:
           type: array
           items:
             type: string
+          nullable: true
         precision:
           type: integer
           format: int32
+          nullable: true
         scale:
           type: integer
           format: int32
+          nullable: true
       description: A field in a dataset result schema.
     DatasetSchemaParameter:
       type: object
@@ -765,6 +764,9 @@ components:
         - label
         - type
         - required
+        - description
+        - defaultValue
+        - allowedValues
       properties:
         name:
           type: string
@@ -776,12 +778,15 @@ components:
           type: boolean
         description:
           type: string
+          nullable: true
         defaultValue:
           type: string
+          nullable: true
         allowedValues:
           type: array
           items:
             type: string
+          nullable: true
       description: A query parameter accepted by a dataset endpoint.
     LineageResponse:
       type: object
@@ -892,12 +897,8 @@ components:
         - identifier
         - title
         - description
-        - keywords
         - relevanceReason
         - rights
-        - status
-        - version
-        - dailyRecordVolume
       properties:
         identifier:
           type: string
@@ -908,28 +909,10 @@ components:
         description:
           type: string
           description: Short description of the dataset (dct:description).
-        publisher:
-          type: string
-          description: Organization that published the dataset (dct:publisher).
-        keywords:
-          type: array
-          items:
-            type: string
-          description: Keywords for dataset discovery (dcat:keyword).
         relevanceReason:
           type: string
           description: Explanation of why this dataset is related.
         rights:
           type: string
           description: Access rights — public, restricted, or internal (dct:rights).
-        status:
-          type: string
-          description: Publication status of the dataset (SDR extension).
-        version:
-          type: string
-          description: Dataset version identifier (SDR extension).
-        dailyRecordVolume:
-          type: integer
-          format: int32
-          description: Expected daily record volume for the dataset (SDR extension).
       description: Related dataset with relevance context.

@@ -15,97 +15,15 @@ servers:
     description: Staging
     variables: {}
 paths:
-  /api/query/v{version}/QueryJob:
-    post:
-      operationId: DS20_submitAggregatedAnnualEstimatesJob
-      summary: Submit aggregated annual estimates export
-      description: |-
-        Submit an asynchronous aggregated annual estimates export.
-
-        The response contains a job identifier and a URL for polling its status.
-      parameters:
-        - name: version
-          in: path
-          required: true
-          description: API version.
-          schema:
-            $ref: "#/components/schemas/ApiMajorVersion"
-      responses:
-        "202":
-          description: The request has been accepted for processing, but processing has not yet completed.
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/JobSubmitResponse"
-              example:
-                jobId: 123e4567-e89b-12d3-a456-426614174000
-                pollUrl: https://sdr.elexon.co.uk/api/query/v1/aggregated-annual-estimates/123e4567-e89b-12d3-a456-426614174000
-        "400":
-          description: The server could not understand the request due to invalid syntax.
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/ProblemDetails"
-        "401":
-          description: Access is unauthorized.
-        "403":
-          description: Access is forbidden.
-      tags:
-        - Query
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: "#/components/schemas/AggregatedAnnualEstimateJobRequest"
-        description: Aggregated annual estimates MPAN cohort request.
-      security:
-        - OAuth2Auth:
-            - api://sdr-api/level-2
-  /api/query/v{version}/QueryJob/{jobId}:
-    get:
-      operationId: DS20_getAggregatedAnnualEstimatesJobStatus
-      summary: Get aggregated annual estimates export status
-      description: Get the status and download URL for an asynchronous aggregated annual estimates export.
-      parameters:
-        - name: version
-          in: path
-          required: true
-          description: API version.
-          schema:
-            $ref: "#/components/schemas/ApiMajorVersion"
-        - name: jobId
-          in: path
-          required: true
-          description: Query job identifier.
-          schema:
-            type: string
-      responses:
-        "200":
-          description: The request has succeeded.
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/AggregatedAnnualEstimateJobStatus"
-        "401":
-          description: Access is unauthorized.
-        "403":
-          description: Access is forbidden.
-        "404":
-          description: The server cannot find the requested resource.
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/ProblemDetails"
-      tags:
-        - Query
-      security:
-        - OAuth2Auth:
-            - api://sdr-api/level-2
   /api/query/v{version}/aggregated-annual-estimates:
-    get:
-      operationId: DS20_getAggregatedAnnualEstimates
+    post:
+      operationId: DS20_postAggregatedAnnualEstimates
       summary: Get aggregated annual estimates
+      description: |-
+        Get aggregated annual estimates using a JSON MPAN Core cohort.
+
+        The response contains one aggregate estimated annual consumption value
+        for a cohort of at least six distinct MPAN Cores.
       parameters:
         - name: version
           in: path
@@ -113,13 +31,6 @@ paths:
           description: API version.
           schema:
             $ref: "#/components/schemas/ApiMajorVersion"
-        - name: mpanCores
-          in: query
-          required: true
-          description: Comma-separated list of at least six distinct 13-digit MPAN Cores.
-          schema:
-            $ref: "#/components/schemas/MpanCoreCsv"
-          explode: false
       responses:
         "200":
           description: The request has succeeded.
@@ -151,26 +62,27 @@ paths:
                 $ref: "#/components/schemas/ProblemDetails"
       tags:
         - Query
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AggregatedAnnualEstimateRequest"
+        description: Aggregated annual estimates MPAN cohort request.
       security:
-        - OAuth2Auth:
-            - api://sdr-api/level-2
+        - OAuth2Auth: []
+      x-required-roles:
+        - SDR.Level2
   /api/query/v{version}/aggregated-consumption-and-generation-for-multiple-meters/daily:
-    get:
-      operationId: DS22_getDailyAggregatedConsumptionAndGeneration
-      summary: Daily aggregated consumption and generation
+    post:
+      operationId: DS22_postDailyAggregatedConsumptionAndGeneration
+      summary: Query daily aggregated consumption and generation
       parameters:
         - name: version
           in: path
           required: true
           schema:
             $ref: "#/components/schemas/ApiMajorVersion"
-        - $ref: "#/components/parameters/PaginationParams.offset"
-        - $ref: "#/components/parameters/PaginationParams.limit"
-        - $ref: "#/components/parameters/Ds22CommonQueryParams.startDate"
-        - $ref: "#/components/parameters/Ds22CommonQueryParams.endDate"
-        - $ref: "#/components/parameters/Ds22CommonQueryParams.mpanCore"
-        - $ref: "#/components/parameters/Ds22CommonQueryParams.qualityIndicator"
-        - $ref: "#/components/parameters/Ds22CommonQueryParams.energyDirection"
       responses:
         "200":
           description: The request has succeeded.
@@ -217,6 +129,12 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/ProblemDetails"
+        "413":
+          description: Client error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ProblemDetails"
         "503":
           description: Service unavailable.
           content:
@@ -231,28 +149,26 @@ paths:
                 $ref: "#/components/schemas/ProblemDetails"
       tags:
         - Query
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/Ds22QueryRequest"
       security:
-        - OAuth2Auth:
-            - api://sdr-api/level-2
+        - OAuth2Auth: []
+      x-required-roles:
+        - SDR.Level2
   /api/query/v{version}/aggregated-consumption-and-generation-for-multiple-meters/half-hourly:
-    get:
-      operationId: DS22_getHalfHourlyAggregatedConsumptionAndGeneration
-      summary: Half-hourly aggregated consumption and generation
+    post:
+      operationId: DS22_postHalfHourlyAggregatedConsumptionAndGeneration
+      summary: Query half-hourly aggregated consumption and generation
       parameters:
         - name: version
           in: path
           required: true
           schema:
             $ref: "#/components/schemas/ApiMajorVersion"
-        - $ref: "#/components/parameters/PaginationParams.offset"
-        - $ref: "#/components/parameters/PaginationParams.limit"
-        - $ref: "#/components/parameters/Ds22CommonQueryParams.startDate"
-        - $ref: "#/components/parameters/Ds22CommonQueryParams.endDate"
-        - $ref: "#/components/parameters/Ds22CommonQueryParams.mpanCore"
-        - $ref: "#/components/parameters/Ds22CommonQueryParams.qualityIndicator"
-        - $ref: "#/components/parameters/Ds22CommonQueryParams.energyDirection"
-        - $ref: "#/components/parameters/Ds22HalfHourlyQueryParams.settlementPeriodStart"
-        - $ref: "#/components/parameters/Ds22HalfHourlyQueryParams.settlementPeriodEnd"
       responses:
         "200":
           description: The request has succeeded.
@@ -299,6 +215,12 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/ProblemDetails"
+        "413":
+          description: Client error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ProblemDetails"
         "503":
           description: Service unavailable.
           content:
@@ -313,26 +235,26 @@ paths:
                 $ref: "#/components/schemas/ProblemDetails"
       tags:
         - Query
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/Ds22HalfHourlyQueryRequest"
       security:
-        - OAuth2Auth:
-            - api://sdr-api/level-2
+        - OAuth2Auth: []
+      x-required-roles:
+        - SDR.Level2
   /api/query/v{version}/aggregated-consumption-and-generation-for-multiple-meters/monthly:
-    get:
-      operationId: DS22_getMonthlyAggregatedConsumptionAndGeneration
-      summary: Monthly aggregated consumption and generation
+    post:
+      operationId: DS22_postMonthlyAggregatedConsumptionAndGeneration
+      summary: Query monthly aggregated consumption and generation
       parameters:
         - name: version
           in: path
           required: true
           schema:
             $ref: "#/components/schemas/ApiMajorVersion"
-        - $ref: "#/components/parameters/PaginationParams.offset"
-        - $ref: "#/components/parameters/PaginationParams.limit"
-        - $ref: "#/components/parameters/Ds22CommonQueryParams.startDate"
-        - $ref: "#/components/parameters/Ds22CommonQueryParams.endDate"
-        - $ref: "#/components/parameters/Ds22CommonQueryParams.mpanCore"
-        - $ref: "#/components/parameters/Ds22CommonQueryParams.qualityIndicator"
-        - $ref: "#/components/parameters/Ds22CommonQueryParams.energyDirection"
       responses:
         "200":
           description: The request has succeeded.
@@ -379,6 +301,12 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/ProblemDetails"
+        "413":
+          description: Client error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ProblemDetails"
         "503":
           description: Service unavailable.
           content:
@@ -393,9 +321,16 @@ paths:
                 $ref: "#/components/schemas/ProblemDetails"
       tags:
         - Query
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/Ds22QueryRequest"
       security:
-        - OAuth2Auth:
-            - api://sdr-api/level-2
+        - OAuth2Auth: []
+      x-required-roles:
+        - SDR.Level2
   /api/query/v{version}/gsp-group-consumption-and-generation/daily:
     get:
       operationId: DS21_getDailyGspGroupConsumption
@@ -468,8 +403,9 @@ paths:
       tags:
         - Query
       security:
-        - OAuth2Auth:
-            - api://sdr-api/level-2
+        - OAuth2Auth: []
+      x-required-roles:
+        - SDR.Level2
   /api/query/v{version}/gsp-group-consumption-and-generation/daily/download:
     post:
       operationId: DS21_submitDailyGspGroupConsumptionJob
@@ -511,8 +447,9 @@ paths:
       tags:
         - Query
       security:
-        - OAuth2Auth:
-            - api://sdr-api/level-2
+        - OAuth2Auth: []
+      x-required-roles:
+        - SDR.Level2
     get:
       operationId: DS21_downloadDailyGspGroupConsumption
       summary: Download daily GSP group consumption
@@ -568,8 +505,9 @@ paths:
       tags:
         - Query
       security:
-        - OAuth2Auth:
-            - api://sdr-api/level-2
+        - OAuth2Auth: []
+      x-required-roles:
+        - SDR.Level2
   /api/query/v{version}/gsp-group-consumption-and-generation/daily/{jobId}:
     get:
       operationId: DS21_getDailyGspGroupConsumptionJobStatus
@@ -606,8 +544,9 @@ paths:
       tags:
         - Query
       security:
-        - OAuth2Auth:
-            - api://sdr-api/level-2
+        - OAuth2Auth: []
+      x-required-roles:
+        - SDR.Level2
   /api/query/v{version}/gsp-group-consumption-and-generation/daily/{jobId}/download:
     get:
       operationId: DS21_downloadDailyGspGroupConsumptionQueryJob
@@ -656,8 +595,9 @@ paths:
       tags:
         - Query
       security:
-        - OAuth2Auth:
-            - api://sdr-api/level-2
+        - OAuth2Auth: []
+      x-required-roles:
+        - SDR.Level2
   /api/query/v{version}/gsp-group-consumption-and-generation/half-hourly:
     get:
       operationId: DS21_getHalfHourlyGspGroupConsumption
@@ -732,8 +672,9 @@ paths:
       tags:
         - Query
       security:
-        - OAuth2Auth:
-            - api://sdr-api/level-2
+        - OAuth2Auth: []
+      x-required-roles:
+        - SDR.Level2
   /api/query/v{version}/gsp-group-consumption-and-generation/half-hourly/download:
     post:
       operationId: DS21_submitHalfHourlyGspGroupConsumptionJob
@@ -777,8 +718,9 @@ paths:
       tags:
         - Query
       security:
-        - OAuth2Auth:
-            - api://sdr-api/level-2
+        - OAuth2Auth: []
+      x-required-roles:
+        - SDR.Level2
     get:
       operationId: DS21_downloadHalfHourlyGspGroupConsumption
       summary: Download half-hourly GSP group consumption
@@ -836,8 +778,9 @@ paths:
       tags:
         - Query
       security:
-        - OAuth2Auth:
-            - api://sdr-api/level-2
+        - OAuth2Auth: []
+      x-required-roles:
+        - SDR.Level2
   /api/query/v{version}/gsp-group-consumption-and-generation/half-hourly/{jobId}:
     get:
       operationId: DS21_getDs21HalfHourlyQueryJobStatus
@@ -874,8 +817,9 @@ paths:
       tags:
         - Query
       security:
-        - OAuth2Auth:
-            - api://sdr-api/level-2
+        - OAuth2Auth: []
+      x-required-roles:
+        - SDR.Level2
   /api/query/v{version}/gsp-group-consumption-and-generation/half-hourly/{jobId}/download:
     get:
       operationId: DS21_downloadHalfHourlyGspGroupConsumptionQueryJob
@@ -924,8 +868,9 @@ paths:
       tags:
         - Query
       security:
-        - OAuth2Auth:
-            - api://sdr-api/level-2
+        - OAuth2Auth: []
+      x-required-roles:
+        - SDR.Level2
   /api/query/v{version}/gsp-group-consumption-and-generation/monthly:
     get:
       operationId: DS21_getMonthlyGspGroupConsumption
@@ -998,8 +943,9 @@ paths:
       tags:
         - Query
       security:
-        - OAuth2Auth:
-            - api://sdr-api/level-2
+        - OAuth2Auth: []
+      x-required-roles:
+        - SDR.Level2
   /api/query/v{version}/gsp-group-consumption-and-generation/monthly/download:
     post:
       operationId: DS21_submitMonthlyGspGroupConsumptionJob
@@ -1041,8 +987,9 @@ paths:
       tags:
         - Query
       security:
-        - OAuth2Auth:
-            - api://sdr-api/level-2
+        - OAuth2Auth: []
+      x-required-roles:
+        - SDR.Level2
     get:
       operationId: DS21_downloadMonthlyGspGroupConsumption
       summary: Download monthly GSP group consumption
@@ -1098,8 +1045,9 @@ paths:
       tags:
         - Query
       security:
-        - OAuth2Auth:
-            - api://sdr-api/level-2
+        - OAuth2Auth: []
+      x-required-roles:
+        - SDR.Level2
   /api/query/v{version}/gsp-group-consumption-and-generation/monthly/{jobId}:
     get:
       operationId: DS21_getDs21MonthlyQueryJobStatus
@@ -1136,8 +1084,9 @@ paths:
       tags:
         - Query
       security:
-        - OAuth2Auth:
-            - api://sdr-api/level-2
+        - OAuth2Auth: []
+      x-required-roles:
+        - SDR.Level2
   /api/query/v{version}/gsp-group-consumption-and-generation/monthly/{jobId}/download:
     get:
       operationId: DS21_downloadMonthlyGspGroupConsumptionQueryJob
@@ -1186,8 +1135,9 @@ paths:
       tags:
         - Query
       security:
-        - OAuth2Auth:
-            - api://sdr-api/level-2
+        - OAuth2Auth: []
+      x-required-roles:
+        - SDR.Level2
   /api/query/v{version}/number-of-meters-in-a-geographic-area:
     get:
       operationId: DS19_getNumberOfMetersByGeographicAreaDaily
@@ -1248,8 +1198,9 @@ paths:
       tags:
         - Query
       security:
-        - OAuth2Auth:
-            - api://sdr-api/level-1
+        - OAuth2Auth: []
+      x-required-roles:
+        - SDR.Level1
   /api/query/v{version}/number-of-meters-in-a-geographic-area/download:
     get:
       operationId: DS19_downloadNumberOfMetersByGeographicAreaDaily
@@ -1312,8 +1263,9 @@ paths:
       tags:
         - Query
       security:
-        - OAuth2Auth:
-            - api://sdr-api/level-1
+        - OAuth2Auth: []
+      x-required-roles:
+        - SDR.Level1
   /api/query/v{version}/number-of-meters-in-a-gsp-group:
     get:
       operationId: DS18_getNumberOfMetersInAGspGroupDaily
@@ -1395,8 +1347,9 @@ paths:
       tags:
         - Query
       security:
-        - OAuth2Auth:
-            - api://sdr-api/level-1
+        - OAuth2Auth: []
+      x-required-roles:
+        - SDR.Level1
   /api/query/v{version}/number-of-meters-in-a-gsp-group/download:
     get:
       operationId: DS18_downloadNumberOfMetersInAGspGroupDaily
@@ -1459,8 +1412,9 @@ paths:
       tags:
         - Query
       security:
-        - OAuth2Auth:
-            - api://sdr-api/level-1
+        - OAuth2Auth: []
+      x-required-roles:
+        - SDR.Level1
   /api/query/v{version}/profile-class-consumption-and-generation/daily:
     get:
       operationId: DS24_getDailyProfileClassConsumption
@@ -1534,8 +1488,9 @@ paths:
       tags:
         - Query
       security:
-        - OAuth2Auth:
-            - api://sdr-api/level-2
+        - OAuth2Auth: []
+      x-required-roles:
+        - SDR.Level2
   /api/query/v{version}/profile-class-consumption-and-generation/daily/download:
     post:
       operationId: DS24_submitDailyProfileClassConsumptionJob
@@ -1578,8 +1533,9 @@ paths:
       tags:
         - Query
       security:
-        - OAuth2Auth:
-            - api://sdr-api/level-2
+        - OAuth2Auth: []
+      x-required-roles:
+        - SDR.Level2
     get:
       operationId: DS24_downloadDailyProfileClassConsumption
       summary: Download daily profile class consumption
@@ -1636,8 +1592,9 @@ paths:
       tags:
         - Query
       security:
-        - OAuth2Auth:
-            - api://sdr-api/level-2
+        - OAuth2Auth: []
+      x-required-roles:
+        - SDR.Level2
   /api/query/v{version}/profile-class-consumption-and-generation/daily/{jobId}:
     get:
       operationId: DS24_getDs24DailyQueryJobStatus
@@ -1674,8 +1631,9 @@ paths:
       tags:
         - Query
       security:
-        - OAuth2Auth:
-            - api://sdr-api/level-2
+        - OAuth2Auth: []
+      x-required-roles:
+        - SDR.Level2
   /api/query/v{version}/profile-class-consumption-and-generation/daily/{jobId}/download:
     get:
       operationId: DS24_downloadDs24DailyQueryJob
@@ -1724,8 +1682,9 @@ paths:
       tags:
         - Query
       security:
-        - OAuth2Auth:
-            - api://sdr-api/level-2
+        - OAuth2Auth: []
+      x-required-roles:
+        - SDR.Level2
   /api/query/v{version}/profile-class-consumption-and-generation/half-hourly:
     get:
       operationId: DS24_getHalfHourlyProfileClassConsumption
@@ -1801,8 +1760,9 @@ paths:
       tags:
         - Query
       security:
-        - OAuth2Auth:
-            - api://sdr-api/level-2
+        - OAuth2Auth: []
+      x-required-roles:
+        - SDR.Level2
   /api/query/v{version}/profile-class-consumption-and-generation/half-hourly/download:
     post:
       operationId: DS24_submitHalfHourlyProfileClassConsumptionJob
@@ -1847,8 +1807,9 @@ paths:
       tags:
         - Query
       security:
-        - OAuth2Auth:
-            - api://sdr-api/level-2
+        - OAuth2Auth: []
+      x-required-roles:
+        - SDR.Level2
     get:
       operationId: DS24_downloadHalfHourlyProfileClassConsumption
       summary: Download half-hourly profile class consumption
@@ -1907,8 +1868,9 @@ paths:
       tags:
         - Query
       security:
-        - OAuth2Auth:
-            - api://sdr-api/level-2
+        - OAuth2Auth: []
+      x-required-roles:
+        - SDR.Level2
   /api/query/v{version}/profile-class-consumption-and-generation/half-hourly/{jobId}:
     get:
       operationId: DS24_getHalfHourlyProfileClassConsumptionQueryJobStatus
@@ -1945,8 +1907,9 @@ paths:
       tags:
         - Query
       security:
-        - OAuth2Auth:
-            - api://sdr-api/level-2
+        - OAuth2Auth: []
+      x-required-roles:
+        - SDR.Level2
   /api/query/v{version}/profile-class-consumption-and-generation/half-hourly/{jobId}/download:
     get:
       operationId: DS24_downloadHalfHourlyProfileClassConsumptionQueryJob
@@ -1995,8 +1958,9 @@ paths:
       tags:
         - Query
       security:
-        - OAuth2Auth:
-            - api://sdr-api/level-2
+        - OAuth2Auth: []
+      x-required-roles:
+        - SDR.Level2
   /api/query/v{version}/profile-class-consumption-and-generation/monthly:
     get:
       operationId: DS24_getMonthlyProfileClassConsumption
@@ -2070,8 +2034,9 @@ paths:
       tags:
         - Query
       security:
-        - OAuth2Auth:
-            - api://sdr-api/level-2
+        - OAuth2Auth: []
+      x-required-roles:
+        - SDR.Level2
   /api/query/v{version}/profile-class-consumption-and-generation/monthly/download:
     post:
       operationId: DS24_submitMonthlyProfileClassConsumptionJob
@@ -2114,8 +2079,9 @@ paths:
       tags:
         - Query
       security:
-        - OAuth2Auth:
-            - api://sdr-api/level-2
+        - OAuth2Auth: []
+      x-required-roles:
+        - SDR.Level2
     get:
       operationId: DS24_downloadMonthlyProfileClassConsumption
       summary: Download monthly profile class consumption
@@ -2172,8 +2138,9 @@ paths:
       tags:
         - Query
       security:
-        - OAuth2Auth:
-            - api://sdr-api/level-2
+        - OAuth2Auth: []
+      x-required-roles:
+        - SDR.Level2
   /api/query/v{version}/profile-class-consumption-and-generation/monthly/{jobId}:
     get:
       operationId: DS24_getMonthlyProfileClassConsumptionQueryJobStatus
@@ -2210,8 +2177,9 @@ paths:
       tags:
         - Query
       security:
-        - OAuth2Auth:
-            - api://sdr-api/level-2
+        - OAuth2Auth: []
+      x-required-roles:
+        - SDR.Level2
   /api/query/v{version}/profile-class-consumption-and-generation/monthly/{jobId}/download:
     get:
       operationId: DS24_downloadMonthlyProfileClassConsumptionQueryJob
@@ -2260,8 +2228,9 @@ paths:
       tags:
         - Query
       security:
-        - OAuth2Auth:
-            - api://sdr-api/level-2
+        - OAuth2Auth: []
+      x-required-roles:
+        - SDR.Level2
   /api/query/v{version}/regional-consumption-and-generation/daily:
     get:
       operationId: DS23_getDailyRegionalConsumption
@@ -2334,8 +2303,9 @@ paths:
       tags:
         - Query
       security:
-        - OAuth2Auth:
-            - api://sdr-api/level-2
+        - OAuth2Auth: []
+      x-required-roles:
+        - SDR.Level2
   /api/query/v{version}/regional-consumption-and-generation/daily/download:
     post:
       operationId: DS23_submitDailyRegionalConsumptionJob
@@ -2377,8 +2347,9 @@ paths:
       tags:
         - Query
       security:
-        - OAuth2Auth:
-            - api://sdr-api/level-2
+        - OAuth2Auth: []
+      x-required-roles:
+        - SDR.Level2
     get:
       operationId: DS23_downloadDailyRegionalConsumption
       summary: Download daily regional consumption and generation
@@ -2434,8 +2405,9 @@ paths:
       tags:
         - Query
       security:
-        - OAuth2Auth:
-            - api://sdr-api/level-2
+        - OAuth2Auth: []
+      x-required-roles:
+        - SDR.Level2
   /api/query/v{version}/regional-consumption-and-generation/daily/{jobId}:
     get:
       operationId: DS23_getDailyRegionalConsumptionJobStatus
@@ -2472,8 +2444,9 @@ paths:
       tags:
         - Query
       security:
-        - OAuth2Auth:
-            - api://sdr-api/level-2
+        - OAuth2Auth: []
+      x-required-roles:
+        - SDR.Level2
   /api/query/v{version}/regional-consumption-and-generation/daily/{jobId}/download:
     get:
       operationId: DS23_downloadDailyRegionalConsumptionQueryJob
@@ -2522,8 +2495,9 @@ paths:
       tags:
         - Query
       security:
-        - OAuth2Auth:
-            - api://sdr-api/level-2
+        - OAuth2Auth: []
+      x-required-roles:
+        - SDR.Level2
   /api/query/v{version}/regional-consumption-and-generation/half-hourly:
     get:
       operationId: DS23_getHalfHourlyRegionalConsumption
@@ -2598,8 +2572,9 @@ paths:
       tags:
         - Query
       security:
-        - OAuth2Auth:
-            - api://sdr-api/level-2
+        - OAuth2Auth: []
+      x-required-roles:
+        - SDR.Level2
   /api/query/v{version}/regional-consumption-and-generation/half-hourly/download:
     post:
       operationId: DS23_submitHalfHourlyRegionalConsumptionJob
@@ -2643,8 +2618,9 @@ paths:
       tags:
         - Query
       security:
-        - OAuth2Auth:
-            - api://sdr-api/level-2
+        - OAuth2Auth: []
+      x-required-roles:
+        - SDR.Level2
     get:
       operationId: DS23_downloadHalfHourlyRegionalConsumption
       summary: Download half-hourly regional consumption and generation
@@ -2702,8 +2678,9 @@ paths:
       tags:
         - Query
       security:
-        - OAuth2Auth:
-            - api://sdr-api/level-2
+        - OAuth2Auth: []
+      x-required-roles:
+        - SDR.Level2
   /api/query/v{version}/regional-consumption-and-generation/half-hourly/{jobId}:
     get:
       operationId: DS23_getHalfHourlyRegionalConsumptionJobStatus
@@ -2740,8 +2717,9 @@ paths:
       tags:
         - Query
       security:
-        - OAuth2Auth:
-            - api://sdr-api/level-2
+        - OAuth2Auth: []
+      x-required-roles:
+        - SDR.Level2
   /api/query/v{version}/regional-consumption-and-generation/half-hourly/{jobId}/download:
     get:
       operationId: DS23_downloadHalfHourlyRegionalConsumptionQueryJob
@@ -2790,8 +2768,9 @@ paths:
       tags:
         - Query
       security:
-        - OAuth2Auth:
-            - api://sdr-api/level-2
+        - OAuth2Auth: []
+      x-required-roles:
+        - SDR.Level2
   /api/query/v{version}/regional-consumption-and-generation/monthly:
     get:
       operationId: DS23_getMonthlyRegionalConsumption
@@ -2864,8 +2843,9 @@ paths:
       tags:
         - Query
       security:
-        - OAuth2Auth:
-            - api://sdr-api/level-2
+        - OAuth2Auth: []
+      x-required-roles:
+        - SDR.Level2
   /api/query/v{version}/regional-consumption-and-generation/monthly/download:
     post:
       operationId: DS23_submitMonthlyRegionalConsumptionJob
@@ -2907,8 +2887,9 @@ paths:
       tags:
         - Query
       security:
-        - OAuth2Auth:
-            - api://sdr-api/level-2
+        - OAuth2Auth: []
+      x-required-roles:
+        - SDR.Level2
     get:
       operationId: DS23_downloadMonthlyRegionalConsumption
       summary: Download monthly regional consumption and generation
@@ -2964,8 +2945,9 @@ paths:
       tags:
         - Query
       security:
-        - OAuth2Auth:
-            - api://sdr-api/level-2
+        - OAuth2Auth: []
+      x-required-roles:
+        - SDR.Level2
   /api/query/v{version}/regional-consumption-and-generation/monthly/{jobId}:
     get:
       operationId: DS23_getMonthlyRegionalConsumptionJobStatus
@@ -3002,8 +2984,9 @@ paths:
       tags:
         - Query
       security:
-        - OAuth2Auth:
-            - api://sdr-api/level-2
+        - OAuth2Auth: []
+      x-required-roles:
+        - SDR.Level2
   /api/query/v{version}/regional-consumption-and-generation/monthly/{jobId}/download:
     get:
       operationId: DS23_downloadMonthlyRegionalConsumptionQueryJob
@@ -3052,10 +3035,13 @@ paths:
       tags:
         - Query
       security:
-        - OAuth2Auth:
-            - api://sdr-api/level-2
+        - OAuth2Auth: []
+      x-required-roles:
+        - SDR.Level2
 tags:
   - name: Query
+    description: Execute queries against specific datasets. Each dataset has its own typed endpoint with dataset-specific
+      parameters and response schemas.
 components:
   schemas:
     ApiMajorVersion:
@@ -3063,80 +3049,6 @@ components:
       pattern: ^[1-9][0-9]*$
       description: Numeric API major version; route templates supply the v prefix.
       example: "1"
-    JobSubmitResponse:
-      type: object
-      required:
-        - jobId
-        - pollUrl
-      properties:
-        jobId:
-          type: string
-          description: Unique identifier for this query job.
-        pollUrl:
-          type: string
-          format: uri
-          description: URL to poll for job status updates.
-        estimatedCompletionTime:
-          type: string
-          format: date-time
-          description: Estimated completion time (optional).
-      description: Response when a query job is successfully submitted.
-    ProblemDetails:
-      type: object
-      properties:
-        type:
-          type: string
-          description: A URI reference that identifies the problem type.
-        title:
-          type: string
-          description: A short, human-readable summary of the problem type.
-        status:
-          type: integer
-          format: int32
-          description: The HTTP status code generated by the origin server.
-        detail:
-          type: string
-          description: A human-readable explanation specific to this occurrence of the problem.
-        instance:
-          type: string
-          description: A URI reference that identifies the specific occurrence of the problem.
-      description: RFC 7807 Problem Details for HTTP APIs error response.
-    AggregatedAnnualEstimateJobRequest:
-      type: object
-      required:
-        - mpanCores
-      properties:
-        mpanCores:
-          allOf:
-            - $ref: "#/components/schemas/MpanCoreCsv"
-          description: Comma-separated list of at least six distinct 13-digit MPAN Cores.
-      description: Request body for an asynchronous aggregated annual estimates export.
-    MpanCoreCsv:
-      type: string
-      description: A comma-separated list of MPAN Cores used by aggregate dataset query contracts.
-    AggregatedAnnualEstimateJobStatus:
-      type: object
-      required:
-        - jobId
-        - status
-      properties:
-        jobId:
-          type: string
-          description: The query job identifier.
-        status:
-          type: string
-          description: Current query job state.
-        output:
-          type: object
-          additionalProperties: {}
-          description: Export metadata when the job has completed.
-        error:
-          type: string
-          description: Error details when the job has failed.
-        downloadUrl:
-          type: string
-          description: Relative URL for downloading completed results.
-      description: Public status returned while an asynchronous aggregated annual estimates export is running.
     AggregatedAnnualEstimateResponse:
       type: object
       required:
@@ -3162,16 +3074,44 @@ components:
           format: decimal
           description: Estimated annual consumption in kWh.
       description: A single aggregated annual estimate result for the requested MPAN cohort.
-    Ds22SettlementDate:
+    ProblemDetails:
+      type: object
+      properties:
+        type:
+          type: string
+          description: A URI reference that identifies the problem type.
+        title:
+          type: string
+          description: A short, human-readable summary of the problem type.
+        status:
+          type: integer
+          format: int32
+          description: The HTTP status code generated by the origin server.
+        detail:
+          type: string
+          description: A human-readable explanation specific to this occurrence of the problem.
+        instance:
+          type: string
+          description: A URI reference that identifies the specific occurrence of the problem.
+      description: RFC 7807 Problem Details for HTTP APIs error response.
+    AggregatedAnnualEstimateRequest:
+      type: object
+      required:
+        - mpanCores
+      properties:
+        mpanCores:
+          type: array
+          items:
+            $ref: "#/components/schemas/MpanCore"
+          minItems: 6
+          description: At least six distinct 13-digit MPAN Cores.
+      description: Request body for a synchronous aggregated annual estimates query.
+    MpanCore:
       type: string
-      pattern: ^[0-9]{4}-[0-9]{2}-[0-9]{2}(T00:00:00(\.[0-9]+)?Z?)?$
-    QualityIndicatorCsv:
-      type: string
-      description: Comma-separated quality indicator values used to filter aggregated consumption and generation for multiple
-        meters.
-    EnergyDirectionCsv:
-      type: string
-      description: Comma-separated energy direction values used to filter aggregated consumption and generation for multiple meters.
+      minLength: 13
+      maxLength: 13
+      pattern: ^[0-9]{13}$
+      description: 13-digit Metering Point Administration Number (core part only).
     Ds22DailyRecord:
       type: object
       required:
@@ -3265,6 +3205,46 @@ components:
           type: string
           description: Optional human-readable title for this link.
       description: HATEOAS link for navigation and related resources.
+    Ds22QueryRequest:
+      type: object
+      required:
+        - mpanCores
+      properties:
+        mpanCores:
+          type: array
+          items:
+            $ref: "#/components/schemas/MpanCore"
+          minItems: 6
+          maxItems: 1000
+          description: Six to 1000 submitted 13-digit MPAN cores, including at least six distinct cores.
+        startDate:
+          $ref: "#/components/schemas/Ds22SettlementDate"
+        endDate:
+          $ref: "#/components/schemas/Ds22SettlementDate"
+        qualityIndicator:
+          $ref: "#/components/schemas/QualityIndicatorCsv"
+        energyDirection:
+          $ref: "#/components/schemas/EnergyDirectionCsv"
+        offset:
+          type: integer
+          format: int32
+          minimum: 0
+        limit:
+          type: integer
+          format: int32
+          minimum: 1
+          maximum: 1000
+      description: JSON filters for synchronous multiple-meter aggregation.
+    Ds22SettlementDate:
+      type: string
+      pattern: ^[0-9]{4}-[0-9]{2}-[0-9]{2}(T00:00:00(\.[0-9]+)?Z?)?$
+    QualityIndicatorCsv:
+      type: string
+      description: Comma-separated quality indicator values used to filter aggregated consumption and generation for multiple
+        meters.
+    EnergyDirectionCsv:
+      type: string
+      description: Comma-separated energy direction values used to filter aggregated consumption and generation for multiple meters.
     Ds22HalfHourlyRecord:
       type: object
       required:
@@ -3290,6 +3270,18 @@ components:
         totalConsumptionKwh:
           type: number
           format: decimal
+    Ds22HalfHourlyQueryRequest:
+      type: object
+      properties:
+        settlementPeriodStart:
+          type: string
+          pattern: ^([01][0-9]|2[0-3]):[0-5][0-9]$
+        settlementPeriodEnd:
+          type: string
+          pattern: ^([01][0-9]|2[0-3]):[0-5][0-9]$
+      allOf:
+        - $ref: "#/components/schemas/Ds22QueryRequest"
+      description: Additional UTC settlement-period filters for half-hourly requests.
     Ds22MonthlyRecord:
       type: object
       required:
@@ -3328,7 +3320,7 @@ components:
         - AI
         - AE
         - ANY
-      description: Canonical energy direction values used by query APIs.
+      description: "Energy direction: AI (Actual Import), AE (Actual Export), or ANY for both."
     Ds21DailyGspGroupConsumptionRecord:
       type: object
       required:
@@ -3351,6 +3343,24 @@ components:
           type: number
           format: decimal
       description: Daily GSP group consumption result.
+    JobSubmitResponse:
+      type: object
+      required:
+        - jobId
+        - pollUrl
+      properties:
+        jobId:
+          type: string
+          description: Unique identifier for this query job.
+        pollUrl:
+          type: string
+          format: uri
+          description: URL to poll for job status updates.
+        estimatedCompletionTime:
+          type: string
+          format: date-time
+          description: Estimated completion time (optional).
+      description: Response when a query job is successfully submitted.
     QueryJobStatusResponse:
       type: object
       required:
@@ -3721,85 +3731,6 @@ components:
           format: decimal
       description: Monthly regional consumption and generation result with JSON property labels matching the workbook.
   parameters:
-    PaginationParams.offset:
-      name: offset
-      in: query
-      required: false
-      description: Number of records to skip. Defaults to 0.
-      schema:
-        type: integer
-        format: int32
-        default: 0
-      explode: false
-    PaginationParams.limit:
-      name: limit
-      in: query
-      required: false
-      description: Maximum number of records to return. When omitted, all matching records are returned.
-      schema:
-        type: integer
-        format: int32
-        minimum: 1
-        maximum: 1000
-      explode: false
-    Ds22CommonQueryParams.startDate:
-      name: startDate
-      in: query
-      required: false
-      description: Inclusive UTC settlement start date. Defaults by route granularity when omitted.
-      schema:
-        $ref: "#/components/schemas/Ds22SettlementDate"
-      explode: false
-    Ds22CommonQueryParams.endDate:
-      name: endDate
-      in: query
-      required: false
-      description: Inclusive UTC settlement end date. Defaults to today; half-hourly queries stop at the current UTC time.
-      schema:
-        $ref: "#/components/schemas/Ds22SettlementDate"
-      explode: false
-    Ds22CommonQueryParams.mpanCore:
-      name: mpanCore
-      in: query
-      required: true
-      description: Comma-separated MPAN cores; at least six distinct cores are required.
-      schema:
-        $ref: "#/components/schemas/MpanCoreCsv"
-      explode: false
-    Ds22CommonQueryParams.qualityIndicator:
-      name: qualityIndicator
-      in: query
-      required: false
-      description: Comma-separated quality classes to include. Defaults to ANY.
-      schema:
-        $ref: "#/components/schemas/QualityIndicatorCsv"
-      explode: false
-    Ds22CommonQueryParams.energyDirection:
-      name: energyDirection
-      in: query
-      required: false
-      description: Comma-separated energy directions to include. Defaults to ANY.
-      schema:
-        $ref: "#/components/schemas/EnergyDirectionCsv"
-      explode: false
-    Ds22HalfHourlyQueryParams.settlementPeriodStart:
-      name: settlementPeriodStart
-      in: query
-      required: false
-      description: First settlement-period time to include, in UTC HH:mm format.
-      schema:
-        type: string
-        pattern: ^([01][0-9]|2[0-3]):[0-5][0-9]$
-      explode: false
-    Ds22HalfHourlyQueryParams.settlementPeriodEnd:
-      name: settlementPeriodEnd
-      in: query
-      required: false
-      description: Last settlement-period boundary to include, in UTC HH:mm format.
-      schema:
-        type: string
-        pattern: ^([01][0-9]|2[0-3]):[0-5][0-9]$
-      explode: false
     DateParams.startDate:
       name: startDate
       in: query
@@ -3814,7 +3745,8 @@ components:
       name: endDate
       in: query
       required: false
-      description: Inclusive UTC end date. Defaults to today; half-hourly routes additionally stop at the current UTC time.
+      description: Inclusive UTC end date. Defaults to today; start-only ranges exceeding the configured limit end at
+        startDate plus that limit.
       schema:
         type: string
         format: date
@@ -3848,6 +3780,27 @@ components:
         type: array
         items:
           $ref: "#/components/schemas/EnergyDirection"
+      explode: false
+    PaginationParams.offset:
+      name: offset
+      in: query
+      required: false
+      description: Number of records to skip. Defaults to 0.
+      schema:
+        type: integer
+        format: int32
+        default: 0
+      explode: false
+    PaginationParams.limit:
+      name: limit
+      in: query
+      required: false
+      description: Maximum number of records to return. When omitted, all matching records are returned.
+      schema:
+        type: integer
+        format: int32
+        minimum: 1
+        maximum: 1000
       explode: false
     Ds21DailyMonthlyDownloadParams.limit:
       name: limit
@@ -3977,7 +3930,8 @@ components:
       name: endDate
       in: query
       required: false
-      description: Inclusive end date; defaults to the current UTC date.
+      description: Inclusive end date; defaults to the current UTC date, or startDate plus the configured limit when a
+        start-only range would exceed it.
       schema:
         $ref: "#/components/schemas/Ds23SettlementDate"
       explode: false
@@ -4082,6 +4036,4 @@ components:
         authorizationCode:
           authorizationUrl: https://elxsdrcsnpd.ciamlogin.com/c88e02ed-0bf9-457c-be96-7f53a1fb6a4f/oauth2/v2.0/authorize
           tokenUrl: https://elxsdrcsnpd.ciamlogin.com/c88e02ed-0bf9-457c-be96-7f53a1fb6a4f/oauth2/v2.0/token
-          scopes:
-            api://sdr-api/level-1: ""
-            api://sdr-api/level-2: ""
+          scopes: {}
